@@ -1,38 +1,58 @@
 from afs_parser import extract_afs_data
 import pdfrw
+from pdfrw.objects.pdfstring import PdfString
+
 
 # Extract data from the AFS Application
 afs_data = extract_afs_data("Business Application.pdf")
 
 print(afs_data)
 
-mapping = {
-    "Business Legal Name": "LegalCorporate Name",
-    "DBA": "DBA",
-    "Entity Type": "Type of Entity LLC INC Sole Prop",
-    "Business Start Date": "Date Business Started",
-    "Federal Tax-ID": "Federal Tax ID",
-    "Address": "Business Address",
-    "City": "City",
-    "State": "State",
-    "Zip": "Zip Code",
-    "Business Description": "Describe your Business",
-    "Annual Business Revenue": "Monthly Gross Revenue",
-    "Average Monthly Credit Card Volume": "CC Processing Monthly Volume",
-    "Primary Owner Name": "Corporate OfficerOwner Name",
-    "Ownership %": "Ownership",
-    "Date of Birth": "Date of Birth",
-    "SSN": "Social Sec",
-    "Requested Funding Amount": "How much cash funding are you applying for",
-    "Date": "Date",
+field_mapping = {
+    # Business info
+    "Business Legal Name": ["LegalCorporate Name"],
+    "DBA": ["DBA"],
+    "Entity Type": ["Type of Entity LLC INC Sole Prop"],
+    "Business Start Date": ["Date Business Started"],
+    "Federal Tax-ID": ["Federal Tax ID"],
+    "Business Address": ["Business Address"],
+    "Business City": ["City"],
+    "Business State": ["State", "State of Incorporation"],
+    "Business Zip": ["Zip Code"],
+    "Business Description": ["Describe your Business"],
+    "Annual Business Revenue": ["Monthly Gross Revenue"],
+    "Average Monthly Credit Card Volume": ["CC Processing Monthly Volume"],
+    "Requested Funding Amount": ["How much cash funding are you applying for"],
+
+    # Owner info
+    "Primary Owner Name": ["Corporate OfficerOwner Name", "Print Name"],
+    "SSN": ["Social Sec"],
+    "Date of Birth": ["Date of Birth"],
+    "Ownership %": ["Ownership"],
+
+    # Home address (owner)
+    "Home Address": ["Busin ss Address"],  # typo in form name preserved
+    "Home City": ["City_2"],
+    "Home State": ["State_2"],
+    "Home Zip": ["Zip Code_2"],
+
+    # Date of application
+    "Date": ["Date", "Date_2"],
 }
 
+nrs_data = {}
 
-nrs_data = {nrs_field: afs_data.get(afs_field, "") for afs_field, nrs_field in mapping.items()}
+for afs_field, nrs_fields in field_mapping.items():
+    afs_value = afs_data.get(afs_field, "")
+    for nrs_field in nrs_fields:
+        nrs_data[nrs_field] = afs_value
+
+nrs_data["Title"] = "CEO"
+bus_name = nrs_data["LegalCorporate Name"]
 
 # Fill the NRS fillable PDF
 template_path = "NRS Funding Application.pdf"
-output_path = "Filled_NRS_Funding_Application.pdf"
+output_path = f"NRS Funding Application - {bus_name}.pdf"
 template_pdf = pdfrw.PdfReader(template_path)
 
 # Make sure appearance updates
@@ -46,9 +66,11 @@ for page in template_pdf.pages:
             if annotation['/Subtype'] == '/Widget':
                 field = annotation.get('/T')
                 if field:
-                    field_name = field[1:-1]
+                    field_name = field[1:-1]  # strip parentheses
                     if field_name in nrs_data:
-                        annotation.update(pdfrw.PdfDict(V=nrs_data[field_name]))
+                        value = nrs_data[field_name]
+                        annotation.update(pdfrw.PdfDict(V=PdfString.encode(value)))
+                        annotation.update(pdfrw.PdfDict(AP=""))  # clear appearance
 
 pdfrw.PdfWriter().write(output_path, template_pdf)
 print("✅ Filled NRS Application saved to:", output_path)
