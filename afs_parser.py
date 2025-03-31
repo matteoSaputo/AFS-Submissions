@@ -39,6 +39,9 @@ def extract_afs_data(pdf_path):
     if start != -1:
         full_text = full_text[start:]
 
+    # Track what section we're in
+    current_section = "Business"
+
     # Main pattern for extracting fields
     pattern = r"\*\s*(?P<field>[^:*]+?)\s*:\s*(?P<value>.*?)(?=\s*\*[^:*]+?:|\n|$)"
     matches = re.findall(pattern, full_text)
@@ -47,7 +50,15 @@ def extract_afs_data(pdf_path):
     for field, value in matches:
         field = field.strip()
         value = value.strip()
-        afs_data.update(split_inline_fields(field, value, INLINE_SUBFIELDS))
+
+        # Detect section change
+        if field.lower() == "primary owner name":
+            current_section = "Home"  # Switch context to Owner/Home
+
+        # Add section prefix to disambiguate duplicates
+        normalized_field = f"{current_section} {field}" if field in ["Address", "City", "State", "Zip"] else field
+
+        afs_data.update(split_inline_fields(normalized_field, value, INLINE_SUBFIELDS))
 
     # Special fix for "Date"
     lines = full_text.splitlines()

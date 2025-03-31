@@ -1,37 +1,36 @@
 from afs_parser import extract_afs_data
 import pdfrw
 
-# Step 1: Extract data from the AFS Application
-afs_data = extract_afs_data("AFS Application.pdf")
+# Extract data from the AFS Application
+afs_data = extract_afs_data("Business Application.pdf")
 
 print(afs_data)
 
 mapping = {
     "Business Legal Name": "LegalCorporate Name",
     "DBA": "DBA",
+    "Entity Type": "Type of Entity LLC INC Sole Prop",
+    "Business Start Date": "Date Business Started",
+    "Federal Tax-ID": "Federal Tax ID",
     "Address": "Business Address",
-    "Suite/Floor": "Suite/Floor",
     "City": "City",
     "State": "State",
     "Zip": "Zip Code",
-    "Federal Tax-ID": "Federal Tax ID",
-    "Primary Owner Name": "Corporate OfficerOwner Name",
-    "SSN": "Social Sec",
-    "Date of Birth": "Date of Birth",
-    "Ownership %": "Ownership",
-    "Estimated FICO Score": "Estimated FICO Score",  
     "Business Description": "Describe your Business",
-    "Purpose of Funds": "Purpose of Funds",
-    "Requested Funding Amount": "How much cash funding are you applying for",
     "Annual Business Revenue": "Monthly Gross Revenue",
     "Average Monthly Credit Card Volume": "CC Processing Monthly Volume",
-    "Outstanding Receivables": "Outstanding Receivables",
-    "Date": "Date"
+    "Primary Owner Name": "Corporate OfficerOwner Name",
+    "Ownership %": "Ownership",
+    "Date of Birth": "Date of Birth",
+    "SSN": "Social Sec",
+    "Requested Funding Amount": "How much cash funding are you applying for",
+    "Date": "Date",
 }
+
 
 nrs_data = {nrs_field: afs_data.get(afs_field, "") for afs_field, nrs_field in mapping.items()}
 
-# Step 3: Fill the NRS fillable PDF
+# Fill the NRS fillable PDF
 template_path = "NRS Funding Application.pdf"
 output_path = "Filled_NRS_Funding_Application.pdf"
 template_pdf = pdfrw.PdfReader(template_path)
