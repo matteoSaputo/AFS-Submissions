@@ -1,6 +1,7 @@
 from afs_parser import extract_afs_data
 import pdfrw
 from pdfrw.objects.pdfstring import PdfString
+import re
 
 def fill_nrs(afs_data, output_folder):
 
@@ -45,11 +46,11 @@ def fill_nrs(afs_data, output_folder):
             nrs_data[nrs_field] = afs_value
 
     nrs_data["Title"] = "CEO"
-    bus_name = nrs_data["LegalCorporate Name"]
+    bus_name = re.sub(r'[\\/*?:"<>|]', "_", afs_data["Business Legal Name"])
 
     # Fill the NRS fillable PDF
     template_path = "NRS Funding Application.pdf"
-    output_path = f"{output_folder}NRS Funding Application - {bus_name}.pdf"
+    output_path = f"{output_folder}/NRS Funding Application - {bus_name}.pdf"
     template_pdf = pdfrw.PdfReader(template_path)
 
     # Make sure appearance updates
