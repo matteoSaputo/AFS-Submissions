@@ -71,4 +71,4 @@ def fill_nrs(afs_data, output_folder):
                             annotation.update(pdfrw.PdfDict(AP=""))  # clear appearance
 
     pdfrw.PdfWriter().write(output_path, template_pdf)
-    print("✅ Filled NRS Application saved to:", output_path)
+    print("Filled NRS Application saved to:", output_path)

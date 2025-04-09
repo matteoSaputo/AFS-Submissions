@@ -1,5 +1,6 @@
 from afs_parser import extract_afs_data
 from fill_nrs import fill_nrs
+from redact_contact_info import redact_contact_info
 from pdfrw import PdfReader, PdfWriter
 
 import os
@@ -26,6 +27,9 @@ def main():
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)
+
+    # Save a copy opf the afs app without contact info
+    redact_contact_info(afs_source, f"{customer_folder}/Business Sub Application - {bus_name}.pdf")
 
     # Fill and save NRS Application
     fill_nrs(afs_data, customer_folder)
