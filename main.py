@@ -18,7 +18,7 @@ def main():
     bus_name = re.sub(r'[\\/*?:"<>|]', "_", afs_data["Business Legal Name"])
 
     # Rename afs app with business name
-    os.rename(afs_source, f"./data/Business Application - {bus_name}.pdf")
+    os.rename(afs_source, f"./data/Business Application - {bus_name}.pdf") 
     afs_source = f"./data/Business Application - {bus_name}.pdf"
 
     customer_folder = f'./test'
@@ -28,13 +28,15 @@ def main():
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)
 
-    # Save a copy opf the afs app without contact info
+    # Save a copy of the afs app without contact info
     redact_contact_info(afs_source, f"{customer_folder}/Business Sub Application - {bus_name}.pdf")
 
     # Fill and save NRS Application
     fill_nrs(afs_data, customer_folder)
 
     # move afs app in new folder
+    if os.path.exists(f"{customer_folder}/Business Application - {bus_name}.pdf"):
+        os.remove(f"{customer_folder}/Business Application - {bus_name}.pdf")
     shutil.move(afs_source, customer_folder)
 
 if __name__ == "__main__":
