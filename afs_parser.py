@@ -4,6 +4,15 @@ import re
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Fax", "Personal eMail", "Personal Fax", "Zip", "City", "State"
 ]
+SECTION_HEADINGS = [
+    "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION", "ATTACH", "By signing below",
+]
+
+def clean_value(value):
+    for heading in SECTION_HEADINGS:
+        if heading.lower() in value.lower():
+            return ""
+    return value.strip()
 
 def split_inline_fields(field, value, inline_fields):
     """Splits out known subfields that appear inline within a value."""
@@ -49,7 +58,7 @@ def extract_afs_data(pdf_path):
     afs_data = {}
     for field, value in matches:
         field = field.strip()
-        value = value.strip()
+        value = clean_value(value)
 
         # Detect section change
         if field.lower() == "primary owner name":
