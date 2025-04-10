@@ -35,6 +35,8 @@ def main():
     fill_nrs(afs_data, customer_folder)
 
     # move afs app in new folder
+    if os.path.exists(f"{customer_folder}/Business Application - {bus_name}.pdf"):
+        os.remove(f"{customer_folder}/Business Application - {bus_name}.pdf")
     shutil.move(afs_source, customer_folder)
 
 if __name__ == "__main__":
