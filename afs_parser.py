@@ -22,19 +22,32 @@ def overlay_afs_fields(input_path, output_path, afs_data):
 
     # Define positions
     field_coords = {
-        "SSN": (100, 450),                 
-        "Date of Birth": (100, 470),
-        "Business Start Date": (100, 200)
+        "S S N": (65, 280),                 
+        "Date Of Birth": (305, 280),
+        "Business Start Date": (325, 180)
     }
 
+    # Load the custom Lucida Console font
+    font_path = "./fonts/LUCON.TTF"
+
     # Font settings
-    font_size = 10
+    font_size = 9
     font_color = (0, 0, 0)  # Black
 
     for field, value in afs_data.items():
         if field in field_coords and value.strip():
             x, y = field_coords[field]
-            page.insert_text((x, y), value, fontsize=font_size, color=font_color)
+            # Use insert_textbox to allow font embedding
+            rect = fitz.Rect(x, y, x + 200, y + 15)  # Adjust width/height as needed
+            page.insert_textbox(
+                rect,
+                value,
+                fontname="lucida-console",     
+                fontfile=font_path,          
+                fontsize=font_size,
+                color=font_color,
+                align=0  # left-align
+            )
 
     doc.save(output_path)
 
@@ -110,20 +123,26 @@ def extract_afs_data(pdf_path):
     # Limit Business Name to 30 characters
     afs_data["Business Legal Name"] = truncate_name_at_word(afs_data["Business Legal Name"])
 
+    # Track which values were missing
+    missing_values = {}
+
     # Handle missing SSN
-    if not afs_data.get("S S N") or afs_data["S S N"].strip() == "":
+    if not afs_data.get("S S N") or afs_data["S S N"].strip() == '':
         afs_data["S S N"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
+        missing_values["S S N"] = afs_data["S S N"]
 
     # Handle missing Date of Birth
     if not afs_data.get("Date Of Birth") or afs_data["Date Of Birth"].strip() == "":
         afs_data["Date Of Birth"] = "01/01/1980"
+        missing_values["Date Of Birth"] = afs_data["Date Of Birth"]
 
     # Handle missing Business Start Date
     if not afs_data.get("Business Start Date") or afs_data["Business Start Date"].strip() == "":
         afs_data["Business Start Date"] = "01/01/2020"
+        missing_values["Business Start Date"] = afs_data["Business Start Date"]
 
     # Generate missing values
-    overlay_afs_fields(pdf_path, "temp_overlay.pdf", afs_data)
+    overlay_afs_fields(pdf_path, "temp_overlay.pdf", missing_values)
     os.replace("temp_overlay.pdf", pdf_path)
 
     # Special fix for "Date"
