@@ -5,7 +5,7 @@ import fitz
 import os
 
 INLINE_SUBFIELDS = [
-    "DBA", "Suite/Floor", "Fax", "Personal eMail", "Personal Fax", "Zip", "City", "State"
+    "DBA", "Suite/Floor", "Zip", "City", "State"
 ]
 SECTION_HEADINGS = [
     "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION", "ATTACH", "By signing below",
