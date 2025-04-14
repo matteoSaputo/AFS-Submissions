@@ -1,5 +1,7 @@
 import pdfplumber
 import re
+import random
+import fitz
 
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Fax", "Personal eMail", "Personal Fax", "Zip", "City", "State"
@@ -7,6 +9,41 @@ INLINE_SUBFIELDS = [
 SECTION_HEADINGS = [
     "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION", "ATTACH", "By signing below",
 ]
+
+def normalize_field_name(field):
+    # Insert space before capital letters that follow lowercase or other capitals
+    spaced = re.sub(r'(?<=[a-zA-Z])(?=[A-Z])', ' ', field)
+    return spaced.strip().title()
+
+def overlay_afs_fields(input_path, output_path, afs_data):
+    doc = fitz.open(input_path)
+    page = doc[0]  # Assuming all data is on page 1
+
+    # Define positions
+    field_coords = {
+        "SSN": (100, 450),                 
+        "Date of Birth": (100, 470),
+        "Business Start Date": (100, 200)
+    }
+
+    # Font settings
+    font_size = 10
+    font_color = (0, 0, 0)  # Black
+
+    for field, value in afs_data.items():
+        if field in field_coords and value.strip():
+            x, y = field_coords[field]
+            page.insert_text((x, y), value, fontsize=font_size, color=font_color)
+
+    doc.save(output_path)
+
+def truncate_name_at_word(name, limit=40):
+    if len(name) <= limit:
+        return name
+    trimmed = name[:limit]
+    if " " in trimmed:
+        return trimmed[:trimmed.rfind(" ")].rstrip()
+    return trimmed.rstrip()
 
 def clean_value(value):
     for heading in SECTION_HEADINGS:
@@ -57,7 +94,7 @@ def extract_afs_data(pdf_path):
 
     afs_data = {}
     for field, value in matches:
-        field = field.strip()
+        field = normalize_field_name(field.strip())
         value = clean_value(value)
 
         # Detect section change
@@ -68,6 +105,21 @@ def extract_afs_data(pdf_path):
         normalized_field = f"{current_section} {field}" if field in ["Address", "City", "State", "Zip"] else field
 
         afs_data.update(split_inline_fields(normalized_field, value, INLINE_SUBFIELDS))
+
+    # Limit Business Name to 30 characters
+    afs_data["Business Legal Name"] = truncate_name_at_word(afs_data["Business Legal Name"])
+
+    # Handle missing SSN
+    if not afs_data.get("SSN") or afs_data["SSN"].strip() == "":
+        afs_data["SSN"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
+
+    # Handle missing Date of Birth
+    if not afs_data.get("Date of Birth") or afs_data["Date of Birth"].strip() == "":
+        afs_data["Date of Birth"] = "01/01/1980"
+
+    # Handle missing Business Start Date
+    if not afs_data.get("Business Start Date") or afs_data["Business Start Date"].strip() == "":
+        afs_data["Business Start Date"] = "01/01/2020"
 
     # Special fix for "Date"
     lines = full_text.splitlines()

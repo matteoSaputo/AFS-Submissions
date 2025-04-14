@@ -1,7 +1,7 @@
 from afs_parser import extract_afs_data
 from fill_nrs import fill_nrs
 from redact_contact_info import redact_contact_info
-from pdfrw import PdfReader, PdfWriter
+from find_matching_folder import find_matching_folder
 
 import os
 import re
@@ -15,15 +15,22 @@ def main():
     afs_data = extract_afs_data(afs_source)
 
     # Sanitize business name to avoid accidentally making weird folders
-    bus_name = re.sub(r'[\\/*?:"<>|]', "_", afs_data["Business Legal Name"])
+    bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["Business Legal Name"])
+    if afs_data.get('DBA'):
+        bus_name = f"{bus_name} DBA {afs_data['DBA']}"
 
     # Rename afs app with business name
     os.rename(afs_source, f"./data/Business Application - {bus_name}.pdf") 
     afs_source = f"./data/Business Application - {bus_name}.pdf"
+ 
+    # Set root folder
+    root = "./test"
+    # root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
-    customer_folder = f'./test'
-
-    customer_folder = f'G:\Shared drives\AFS Drive\Customer Info\Customer Info/{bus_name}'
+    # Set destination folder
+    customer_folder = find_matching_folder(bus_name, root)
+    if not customer_folder:
+        customer_folder = f'{root}/{bus_name}'
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)
