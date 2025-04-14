@@ -25,7 +25,7 @@ def main():
  
     # Set root folder
     root = "./test"
-    # root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
+    root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Set destination folder
     customer_folder = find_matching_folder(bus_name, root)

@@ -36,7 +36,7 @@ def find_matching_folder(business_name, base_folder):
             return os.path.join(base_folder, matched_folder)
 
         elif 50 <= match_score <= 90:
-            print(f"\n📁 Potential match: '{matched_folder}' ({match_score}% match)")
+            print(f"\nPotential match: '{matched_folder}' ({match_score}% match)")
             print(f"🔍 Incoming name: '{business_name}'")
             response = input("Use this folder? [Y/n]: ").strip().lower()
             if response in ("y", "yes", ""):
