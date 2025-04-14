@@ -24,8 +24,8 @@ def fill_nrs(afs_data, output_folder):
 
         # Owner info
         "Primary Owner Name": ["Corporate OfficerOwner Name", "Print Name"],
-        "SSN": ["Social Sec"],
-        "Date of Birth": ["Date of Birth"],
+        "S S N": ["Social Sec"],
+        "Date Of Birth": ["Date of Birth"],
         "Ownership %": ["Ownership"],
 
         # Home address (owner)

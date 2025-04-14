@@ -2,6 +2,7 @@ import pdfplumber
 import re
 import random
 import fitz
+import os
 
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Fax", "Personal eMail", "Personal Fax", "Zip", "City", "State"
@@ -110,16 +111,20 @@ def extract_afs_data(pdf_path):
     afs_data["Business Legal Name"] = truncate_name_at_word(afs_data["Business Legal Name"])
 
     # Handle missing SSN
-    if not afs_data.get("SSN") or afs_data["SSN"].strip() == "":
-        afs_data["SSN"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
+    if not afs_data.get("S S N") or afs_data["S S N"].strip() == "":
+        afs_data["S S N"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
 
     # Handle missing Date of Birth
-    if not afs_data.get("Date of Birth") or afs_data["Date of Birth"].strip() == "":
-        afs_data["Date of Birth"] = "01/01/1980"
+    if not afs_data.get("Date Of Birth") or afs_data["Date Of Birth"].strip() == "":
+        afs_data["Date Of Birth"] = "01/01/1980"
 
     # Handle missing Business Start Date
     if not afs_data.get("Business Start Date") or afs_data["Business Start Date"].strip() == "":
         afs_data["Business Start Date"] = "01/01/2020"
+
+    # Generate missing values
+    overlay_afs_fields(pdf_path, "temp_overlay.pdf", afs_data)
+    os.replace("temp_overlay.pdf", pdf_path)
 
     # Special fix for "Date"
     lines = full_text.splitlines()
