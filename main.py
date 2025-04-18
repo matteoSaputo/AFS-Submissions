@@ -17,7 +17,8 @@ def main():
     # Sanitize business name to avoid accidentally making weird folders
     bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["Business Legal Name"])
     if afs_data.get('DBA'):
-        bus_name = f"{bus_name} DBA {afs_data['DBA']}"
+        dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+        bus_name = f"{bus_name} DBA {dba}"
 
     # Rename afs app with business name
     os.rename(afs_source, f"./data/Business Application - {bus_name}.pdf") 

@@ -28,7 +28,7 @@ def overlay_afs_fields(input_path, output_path, afs_data):
     }
 
     # Load the custom Lucida Console font
-    font_path = "./fonts/LUCON.TTF"
+    font_path = "./data/fonts/LUCON.TTF"
 
     # Font settings
     font_size = 9

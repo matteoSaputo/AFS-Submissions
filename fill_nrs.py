@@ -49,7 +49,7 @@ def fill_nrs(afs_data, output_folder):
     bus_name = re.sub(r'[\\/*?:"<>|]', "_", afs_data["Business Legal Name"])
 
     # Fill the NRS fillable PDF
-    template_path = "NRS Funding Application.pdf"
+    template_path = "./data/data/NRS Funding Application.pdf"
     output_path = f"{output_folder}/NRS Funding Application - {bus_name}.pdf"
     template_pdf = pdfrw.PdfReader(template_path)
 

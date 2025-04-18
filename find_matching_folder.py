@@ -31,11 +31,11 @@ def find_matching_folder(business_name, base_folder):
         # Find the original folder that corresponds to the normalized match
         matched_folder = next((folder for folder, norm in normalized_folders.items() if norm == matched_normalized_name), None)
 
-        if match_score > 90:
+        if match_score > 95:
             print(f"Auto-selected folder: '{matched_folder}' ({match_score}% match)")
             return os.path.join(base_folder, matched_folder)
 
-        elif 50 <= match_score <= 90:
+        elif 50 <= match_score <= 95:
             print(f"\nPotential match: '{matched_folder}' ({match_score}% match)")
             print(f"🔍 Incoming name: '{business_name}'")
             response = input("Use this folder? [Y/n]: ").strip().lower()
