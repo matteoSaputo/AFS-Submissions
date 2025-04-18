@@ -19,13 +19,15 @@ def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
 
     rect = fitz.Rect(*field_coords["rect"])
     font_path = "data/fonts/Allura-Regular.ttf"
+    if not os.path.exists(font_path):
+        raise FileNotFoundError(f"Font not found at {font_path}")
 
     page.insert_textbox(
         rect,
         owner_name,
         fontfile=font_path,
-        fontname="helv",
-        fontsize=16,
+        fontname='allura',
+        fontsize=12,
         color=(0, 0, 0),
         align=0
     )
@@ -42,7 +44,7 @@ def fill_nrs(afs_data, output_folder):
         "DBA": ["DBA"],
         "Entity Type": ["Type of Entity LLC INC Sole Prop"],
         "Business Start Date": ["Date Business Started"],
-        "Federal Tax-ID": ["Federal Tax ID"],
+        "Federal Tax-I D": ["Federal Tax ID"],
         "Business Address": ["Business Address"],
         "Business City": ["City"],
         "Business State": ["State", "State of Incorporation"],
@@ -53,7 +55,7 @@ def fill_nrs(afs_data, output_folder):
         "Requested Funding Amount": ["How much cash funding are you applying for"],
 
         # Owner info
-        "Primary Owner Name": ["Corporate OfficerOwner Name", "Print Name", "Owner Signature X"],
+        "Primary Owner Name": ["Corporate OfficerOwner Name", "Print Name"],
         "S S N": ["Social Sec"],
         "Date Of Birth": ["Date of Birth"],
         "Ownership %": ["Ownership"],
@@ -102,9 +104,9 @@ def fill_nrs(afs_data, output_folder):
                             value = nrs_data[field_name]
                             annotation.update(pdfrw.PdfDict(V=PdfString.encode(value)))
                             annotation.update(pdfrw.PdfDict(AP=""))  # clear appearance
-                            if field_name == 'Owner Signature X':
+                            if field_name == 'Print Name':
                                 x0, y0, x1, y1 = [float(val) for val in annotation.Rect]
-                                sig_coords = { "rect": (x0, y0, x1, y1) } 
+                                sig_coords = { "rect": (x0-100, y0, x1-100, y1) } 
 
     pdfrw.PdfWriter().write(output_path, template_pdf)
 
@@ -112,13 +114,13 @@ def fill_nrs(afs_data, output_folder):
     # flatten_pdf(output_path, f"{output_folder}/temp.pdf") 
     # os.replace(f"{output_folder}/temp.pdf", output_path)
 
-    # # Generate scripted signature
-    # insert_script_signature(
-    #     output_path, 
-    #     f"{output_folder}/temp.pdf", 
-    #     afs_data["Primary Owner Name"], 
-    #     sig_coords
-    # )
-    # os.replace(f"{output_folder}/temp.pdf", output_path)
+    # Generate scripted signature
+    insert_script_signature(
+        output_path, 
+        f"{output_folder}/temp.pdf", 
+        afs_data["Primary Owner Name"], 
+        { "rect": (120, 700, 220, 800) }
+    )
+    os.replace(f"{output_folder}/temp.pdf", output_path)
 
     print("Filled NRS Application saved to:", output_path)
