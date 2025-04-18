@@ -1,7 +1,37 @@
-from afs_parser import extract_afs_data
 import pdfrw
 from pdfrw.objects.pdfstring import PdfString
 import re
+import fitz
+import os
+
+def flatten_pdf(input_path, output_path):
+    doc = fitz.open(input_path)
+    flattened_bytes = doc.convert_to_pdf()
+    flattened_doc = fitz.open("pdf", flattened_bytes)
+    flattened_doc.save(output_path)
+    doc.close()
+    flattened_doc.close()
+
+
+def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
+    doc = fitz.open(pdf_path)
+    page = doc[0]
+
+    rect = fitz.Rect(*field_coords["rect"])
+    font_path = "data/fonts/Allura-Regular.ttf"
+
+    page.insert_textbox(
+        rect,
+        owner_name,
+        fontfile=font_path,
+        fontname="helv",
+        fontsize=16,
+        color=(0, 0, 0),
+        align=0
+    )
+
+    doc.save(output_path)
+
 
 def fill_nrs(afs_data, output_folder):
 
@@ -23,7 +53,7 @@ def fill_nrs(afs_data, output_folder):
         "Requested Funding Amount": ["How much cash funding are you applying for"],
 
         # Owner info
-        "Primary Owner Name": ["Corporate OfficerOwner Name", "Print Name"],
+        "Primary Owner Name": ["Corporate OfficerOwner Name", "Print Name", "Owner Signature X"],
         "S S N": ["Social Sec"],
         "Date Of Birth": ["Date of Birth"],
         "Ownership %": ["Ownership"],
@@ -57,6 +87,9 @@ def fill_nrs(afs_data, output_folder):
     if template_pdf.Root.AcroForm:
         template_pdf.Root.AcroForm.update(pdfrw.PdfDict(NeedAppearances=pdfrw.PdfObject('true')))
 
+    # Save coords of signature box
+    sig_coords = {}
+
     for page in template_pdf.pages:
         annotations = page.get('/Annots')
         if annotations:
@@ -69,6 +102,23 @@ def fill_nrs(afs_data, output_folder):
                             value = nrs_data[field_name]
                             annotation.update(pdfrw.PdfDict(V=PdfString.encode(value)))
                             annotation.update(pdfrw.PdfDict(AP=""))  # clear appearance
+                            if field_name == 'Owner Signature X':
+                                x0, y0, x1, y1 = [float(val) for val in annotation.Rect]
+                                sig_coords = { "rect": (x0, y0, x1, y1) } 
 
     pdfrw.PdfWriter().write(output_path, template_pdf)
+
+    # Flatten nrs form
+    # flatten_pdf(output_path, f"{output_folder}/temp.pdf") 
+    # os.replace(f"{output_folder}/temp.pdf", output_path)
+
+    # # Generate scripted signature
+    # insert_script_signature(
+    #     output_path, 
+    #     f"{output_folder}/temp.pdf", 
+    #     afs_data["Primary Owner Name"], 
+    #     sig_coords
+    # )
+    # os.replace(f"{output_folder}/temp.pdf", output_path)
+
     print("Filled NRS Application saved to:", output_path)
