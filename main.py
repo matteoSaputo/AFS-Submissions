@@ -39,8 +39,10 @@ def main():
     # Save a copy of the afs app without contact info
     redact_contact_info(afs_source, f"{customer_folder}/Business Sub Application - {bus_name}.pdf")
 
-    # Fill and save NRS Application
-    fill_nrs(afs_data, customer_folder)
+    # Fill and save NRS Application (if not cali)
+    state = afs_data["Business State"]
+    if state.lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
+        fill_nrs(afs_data, customer_folder)
 
     # move afs app in new folder
     if os.path.exists(f"{customer_folder}/Business Application - {bus_name}.pdf"):

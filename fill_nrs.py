@@ -18,13 +18,12 @@ def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
         owner_name,
         fontfile=font_path,
         fontname='allura',
-        fontsize=12,
+        fontsize=16,
         color=(0, 0, 0),
         align=0
     )
 
     doc.save(output_path)
-
 
 def fill_nrs(afs_data, output_folder):
 
@@ -80,9 +79,6 @@ def fill_nrs(afs_data, output_folder):
     if template_pdf.Root.AcroForm:
         template_pdf.Root.AcroForm.update(pdfrw.PdfDict(NeedAppearances=pdfrw.PdfObject('true')))
 
-    # Save coords of signature box
-    sig_coords = {}
-
     for page in template_pdf.pages:
         annotations = page.get('/Annots')
         if annotations:
@@ -94,10 +90,6 @@ def fill_nrs(afs_data, output_folder):
                         if field_name in nrs_data:
                             value = nrs_data[field_name]
                             annotation.update(pdfrw.PdfDict(V=PdfString.encode(value)))
-                            if field_name == 'Print Name':
-                                x0, y0, x1, y1 = [float(val) for val in annotation.Rect]
-                                sig_coords = { "rect": (x0-100, y0, x1-100, y1) } 
-
     pdfrw.PdfWriter().write(output_path, template_pdf)
 
     # Generate scripted signature
@@ -105,7 +97,7 @@ def fill_nrs(afs_data, output_folder):
         output_path, 
         f"{output_folder}/temp.pdf", 
         afs_data["Primary Owner Name"], 
-        { "rect": (120, 700, 220, 800) }
+        { "rect": (120, 705, 300, 805) }
     )
     os.replace(f"{output_folder}/temp.pdf", output_path)
 
