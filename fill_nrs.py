@@ -4,18 +4,9 @@ import re
 import fitz
 import os
 
-def flatten_pdf(input_path, output_path):
-    doc = fitz.open(input_path)
-    flattened_bytes = doc.convert_to_pdf()
-    flattened_doc = fitz.open("pdf", flattened_bytes)
-    flattened_doc.save(output_path)
-    doc.close()
-    flattened_doc.close()
-
-
 def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
     doc = fitz.open(pdf_path)
-    page = doc[0]
+    page = doc.load_page(0)
 
     rect = fitz.Rect(*field_coords["rect"])
     font_path = "data/fonts/Allura-Regular.ttf"
@@ -103,16 +94,11 @@ def fill_nrs(afs_data, output_folder):
                         if field_name in nrs_data:
                             value = nrs_data[field_name]
                             annotation.update(pdfrw.PdfDict(V=PdfString.encode(value)))
-                            annotation.update(pdfrw.PdfDict(AP=""))  # clear appearance
                             if field_name == 'Print Name':
                                 x0, y0, x1, y1 = [float(val) for val in annotation.Rect]
                                 sig_coords = { "rect": (x0-100, y0, x1-100, y1) } 
 
     pdfrw.PdfWriter().write(output_path, template_pdf)
-
-    # Flatten nrs form
-    # flatten_pdf(output_path, f"{output_folder}/temp.pdf") 
-    # os.replace(f"{output_folder}/temp.pdf", output_path)
 
     # Generate scripted signature
     insert_script_signature(
