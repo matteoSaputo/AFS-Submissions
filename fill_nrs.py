@@ -1,7 +1,29 @@
-from afs_parser import extract_afs_data
 import pdfrw
 from pdfrw.objects.pdfstring import PdfString
 import re
+import fitz
+import os
+
+def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
+    doc = fitz.open(pdf_path)
+    page = doc.load_page(0)
+
+    rect = fitz.Rect(*field_coords["rect"])
+    font_path = "data/fonts/Allura-Regular.ttf"
+    if not os.path.exists(font_path):
+        raise FileNotFoundError(f"Font not found at {font_path}")
+
+    page.insert_textbox(
+        rect,
+        owner_name,
+        fontfile=font_path,
+        fontname='allura',
+        fontsize=16,
+        color=(0, 0, 0),
+        align=0
+    )
+
+    doc.save(output_path)
 
 def fill_nrs(afs_data, output_folder):
 
@@ -12,7 +34,7 @@ def fill_nrs(afs_data, output_folder):
         "DBA": ["DBA"],
         "Entity Type": ["Type of Entity LLC INC Sole Prop"],
         "Business Start Date": ["Date Business Started"],
-        "Federal Tax-ID": ["Federal Tax ID"],
+        "Federal Tax-I D": ["Federal Tax ID"],
         "Business Address": ["Business Address"],
         "Business City": ["City"],
         "Business State": ["State", "State of Incorporation"],
@@ -68,7 +90,15 @@ def fill_nrs(afs_data, output_folder):
                         if field_name in nrs_data:
                             value = nrs_data[field_name]
                             annotation.update(pdfrw.PdfDict(V=PdfString.encode(value)))
-                            annotation.update(pdfrw.PdfDict(AP=""))  # clear appearance
-
     pdfrw.PdfWriter().write(output_path, template_pdf)
+
+    # Generate scripted signature
+    insert_script_signature(
+        output_path, 
+        f"{output_folder}/temp.pdf", 
+        afs_data["Primary Owner Name"], 
+        { "rect": (120, 705, 300, 805) }
+    )
+    os.replace(f"{output_folder}/temp.pdf", output_path)
+
     print("Filled NRS Application saved to:", output_path)
