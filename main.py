@@ -2,6 +2,7 @@ from afs_parser import extract_afs_data
 from fill_nrs import fill_nrs
 from redact_contact_info import redact_contact_info
 from find_matching_folder import find_matching_folder
+from generate_business_name import generate_business_name
 
 import os
 import re
@@ -9,16 +10,19 @@ import shutil
 
 def main():
 
-    afs_source = "./data/Business Application.pdf"
+    afs_source = "./data/document.pdf"
 
     # Extract data from afs application
     afs_data = extract_afs_data(afs_source)
 
     # Sanitize business name to avoid accidentally making weird folders
-    bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["Business Legal Name"])
+    if not afs_data.get('Business Legal Name') and afs_data.get('DBA'):
+        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+    else:
+        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["Business Legal Name"])
     if afs_data.get('DBA'):
         dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
-        bus_name = f"{bus_name} DBA {dba}"
+        bus_name = generate_business_name(bus_name, dba)
 
     # Rename afs app with business name
     os.rename(afs_source, f"./data/Business Application - {bus_name}.pdf") 
@@ -29,7 +33,12 @@ def main():
     root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Set destination folder
-    customer_folder = find_matching_folder(bus_name, root)
+    customer_folder = find_matching_folder(
+        bus_name,
+        root,
+        legal_name=afs_data.get("Business Legal Name", ""),
+        dba_name=afs_data.get("DBA", "")
+    )
     if not customer_folder:
         customer_folder = f'{root}/{bus_name}'
 
