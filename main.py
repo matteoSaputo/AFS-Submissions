@@ -10,7 +10,7 @@ import shutil
 
 def main():
 
-    afs_source = "./data/Business Application.pdf"
+    afs_source = "./data/document.pdf"
 
     # Extract data from afs application
     afs_data = extract_afs_data(afs_source)
@@ -33,7 +33,12 @@ def main():
     root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Set destination folder
-    customer_folder = find_matching_folder(bus_name, root)
+    customer_folder = find_matching_folder(
+        bus_name,
+        root,
+        legal_name=afs_data.get("Business Legal Name", ""),
+        dba_name=afs_data.get("DBA", "")
+    )
     if not customer_folder:
         customer_folder = f'{root}/{bus_name}'
 
