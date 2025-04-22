@@ -8,9 +8,7 @@ import os
 import re
 import shutil
 
-def main():
-
-    afs_source = "./data/document.pdf"
+def process_submission(afs_source):
 
     # Extract data from afs application
     afs_data = extract_afs_data(afs_source)
@@ -51,12 +49,14 @@ def main():
     # Fill and save NRS Application (if not cali)
     state = afs_data["Business State"]
     if state.lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
-        fill_nrs(afs_data, customer_folder)
+        fill_nrs(afs_data, customer_folder, bus_name)
 
     # move afs app in new folder
     if os.path.exists(f"{customer_folder}/Business Application - {bus_name}.pdf"):
         os.remove(f"{customer_folder}/Business Application - {bus_name}.pdf")
     shutil.move(afs_source, customer_folder)
 
+    return customer_folder
+
 if __name__ == "__main__":
-    main()
+    process_submission()

@@ -25,7 +25,7 @@ def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
 
     doc.save(output_path)
 
-def fill_nrs(afs_data, output_folder):
+def fill_nrs(afs_data, output_folder, bus_name):
 
     # Mapping AFS fields to NRS fields
     field_mapping = {
@@ -68,7 +68,6 @@ def fill_nrs(afs_data, output_folder):
             nrs_data[nrs_field] = afs_value
 
     nrs_data["Title"] = "CEO"
-    bus_name = re.sub(r'[\\/*?:"<>|]', "_", afs_data["Business Legal Name"])
 
     # Fill the NRS fillable PDF
     template_path = "./data/data/NRS Funding Application.pdf"
