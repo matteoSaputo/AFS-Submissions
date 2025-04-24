@@ -15,11 +15,11 @@ def process_submission(afs_source):
 
     # Sanitize business name to avoid accidentally making weird folders
     if not afs_data.get('Business Legal Name') and afs_data.get('DBA'):
-        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
     else:
-        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["Business Legal Name"])
+        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["Business Legal Name"])
     if afs_data.get('DBA'):
-        dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+        dba = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
         bus_name = generate_business_name(bus_name, dba)
 
     # Rename afs app with business name
