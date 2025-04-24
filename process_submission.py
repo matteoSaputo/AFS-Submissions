@@ -8,6 +8,34 @@ import os
 import re
 import shutil
 
+def prepare_submission(afs_path):
+    afs_data = extract_afs_data(afs_path)
+
+    # Create a cleaned business name
+    if not afs_data.get("Business Legal Name") and afs_data.get("DBA"):
+        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+    else:
+        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["Business Legal Name"])
+
+    if afs_data.get("DBA"):
+        dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+        bus_name = generate_business_name(bus_name, dba)
+
+    # Set root folder
+    root = "./test"
+    root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
+
+    # Suggest a folder match but don't make it yet
+    match = find_matching_folder(
+        bus_name,
+        root,
+        legal_name=afs_data.get("Business Legal Name", ""),
+        dba_name=afs_data.get("DBA", "")
+    )
+
+    return afs_data, bus_name, match
+
+
 def process_submission(afs_source):
 
     # Extract data from afs application
