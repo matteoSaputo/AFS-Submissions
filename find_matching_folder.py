@@ -49,7 +49,7 @@ def find_matching_folder(full_name, base_folder, legal_name, dba_name):
         print(f"Auto-selected ({label}) folder: '{matched_folder}' ({score}% match)")
         return os.path.join(base_folder, matched_folder)
 
-    elif 50 <= score <= 95:
+    elif 30 <= score <= 95:
         print(f"\nPotential match ({label}): '{matched_folder}' ({score}% match)")
         print(f"🔍 Incoming: '{full_name}'")
         response = input("Use this folder? [Y/n]: ").strip().lower()
