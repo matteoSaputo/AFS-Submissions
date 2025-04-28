@@ -5,7 +5,7 @@ import os
 import uuid
 
 app = Flask(__name__)
-app.secret_key = 'super_secret_key'  # Needed for sessions!
+app.secret_key = 'super_secret_key'  # Needed for sessions
 UPLOAD_FOLDER = './data/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 

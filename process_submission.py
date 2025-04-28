@@ -36,55 +36,39 @@ def prepare_submission(afs_path):
     return afs_data, bus_name, match
 
 
-def process_submission(afs_source, afs_data, bus_name, customer_folder):
-
-    # Extract data from afs application
-    afs_data = extract_afs_data(afs_source)
-
-    # Sanitize business name to avoid accidentally making weird folders
-    if not afs_data.get('Business Legal Name') and afs_data.get('DBA'):
-        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
-    else:
-        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["Business Legal Name"])
-    if afs_data.get('DBA'):
-        dba = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
-        bus_name = generate_business_name(bus_name, dba)
+def process_submission(upload_path, afs_data, bus_name, customer_folder):
+    """
+    Takes in:
+    - upload_path: path to uploaded PDF (e.g., "./data/uploads/document.pdf")
+    - afs_data: extracted data dictionary
+    - bus_name: sanitized business name string
+    - customer_folder: confirmed or created folder
+    """
 
     # Rename afs app with business name
-    os.rename(afs_source, f"./data/Business Application - {bus_name}.pdf") 
-    afs_source = f"./data/Business Application - {bus_name}.pdf"
- 
-    # Set root folder
-    root = "./test"
-    root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
+    new_afs_path = f"./data/uploads/Business Application - {bus_name}.pdf"
+    os.rename(upload_path, new_afs_path)
 
-    # Set destination folder
-    customer_folder = find_matching_folder(
-        bus_name,
-        root,
-        legal_name=afs_data.get("Business Legal Name", ""),
-        dba_name=afs_data.get("DBA", "")
-    )
-    if not customer_folder:
-        customer_folder = f'{root}/{bus_name}'
+    afs_source = new_afs_path
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)
 
-    # Save a copy of the afs app without contact info
-    redact_contact_info(afs_source, f"{customer_folder}/Business Sub Application - {bus_name}.pdf")
+    # Save a copy of the AFS app WITHOUT contact info
+    redact_contact_info(
+        afs_source,
+        f"{customer_folder}/Business Sub Application - {bus_name}.pdf"
+    )
 
-    # Fill and save NRS Application (if not cali)
-    state = afs_data["Business State"]
+    # Fill and save NRS Application (if not California/Virginia)
+    state = afs_data.get("Business State", "")
     if state.lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
-        fill_nrs(afs_data, customer_folder, bus_name)
+        fill_nrs(afs_data, customer_folder)
 
-    # move afs app in new folder
-    if os.path.exists(f"{customer_folder}/Business Application - {bus_name}.pdf"):
-        os.remove(f"{customer_folder}/Business Application - {bus_name}.pdf")
+    # Move AFS original app into customer folder
+    destination_path = f"{customer_folder}/Business Application - {bus_name}.pdf"
+    if os.path.exists(destination_path):
+        os.remove(destination_path)
     shutil.move(afs_source, customer_folder)
 
     return customer_folder
-
-if __name__ == "__main__":
-    process_submission()
