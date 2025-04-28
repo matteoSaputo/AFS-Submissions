@@ -1,42 +1,57 @@
-from flask import Flask, request, render_template, redirect, url_for
-from process_submission import process_submission, prepare_submission
+# app.py
+from flask import Flask, request, render_template, redirect, url_for, session
+from process_submission import prepare_submission, process_submission
 import os
+import uuid
 
 app = Flask(__name__)
+app.secret_key = 'super_secret_key'  # Needed for sessions!
 UPLOAD_FOLDER = './data/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        file = request.files.get("pdf")
+        file = request.files["pdf"]
         if file:
             upload_path = os.path.join(app.config['UPLOAD_FOLDER'], "document.pdf")
             file.save(upload_path)
 
-            try:
-                afs_data, bus_name, suggested_folder = prepare_submission(upload_path)
-                return render_template("index.html", 
-                                       afs_data=afs_data,
-                                       bus_name=bus_name,
-                                       suggested_folder=suggested_folder)
-            except Exception as e:
-                return f"Error: {str(e)}"
+            afs_data, bus_name, suggested_folder = prepare_submission(upload_path)
+
+            # Save data in session
+            session['afs_data'] = afs_data
+            session['bus_name'] = bus_name
+            session['upload_path'] = upload_path
+            session['suggested_folder'] = suggested_folder
+
+            return redirect(url_for('confirm_folder'))
 
     return render_template("index.html")
 
-@app.route("/confirm", methods=["POST"])
-def confirm():
-    use_suggested = request.form.get("use_suggested") == "yes"
-    afs_data = request.form.get("afs_data")  # Replace with proper session/state handling
-    bus_name = request.form.get("bus_name")  # Replace with proper session/state handling
-    folder_path = request.form.get("suggested_folder") if use_suggested else None
+@app.route("/confirm-folder", methods=["GET", "POST"])
+def confirm_folder():
+    afs_data = session.get('afs_data')
+    bus_name = session.get('bus_name')
+    suggested_folder = session.get('suggested_folder')
 
-    try:
-        final_path = process_submission("./data/uploads/document.pdf")
-        return f"Submission successfully processed and saved to:<br>{final_path}"
-    except Exception as e:
-        return f"Error during submission: {str(e)}"
+    if not (afs_data and bus_name):
+        return redirect(url_for('index'))
+
+    if request.method == "POST":
+        decision = request.form.get("decision")
+        if decision == "confirm":
+            customer_folder = suggested_folder
+        else:
+            root = "G:/Shared drives/AFS Drive/Customer Info/Customer Info"
+            customer_folder = os.path.join(root, bus_name)
+
+        # Now fully process
+        process_submission(session['upload_path'], afs_data, bus_name, customer_folder)
+
+        # return render_template("success.html", customer_folder=customer_folder)
+
+    return render_template("confirm_folder.html", suggested_folder=suggested_folder, bus_name=bus_name)
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)

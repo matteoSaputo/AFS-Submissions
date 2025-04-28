@@ -36,7 +36,7 @@ def prepare_submission(afs_path):
     return afs_data, bus_name, match
 
 
-def process_submission(afs_source):
+def process_submission(afs_source, afs_data, bus_name, customer_folder):
 
     # Extract data from afs application
     afs_data = extract_afs_data(afs_source)

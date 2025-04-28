@@ -1,0 +1,22 @@
+<!-- templates/confirm_folder.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Customer Folder</title>
+</head>
+<body>
+    <h2>Suggested Customer Folder:</h2>
+    <p><strong>{{ suggested_folder }}</strong></p>
+
+    <h3>Do you want to use this folder?</h3>
+
+    <form method="POST">
+        <button type="submit" name="decision" value="confirm">✅ Confirm</button>
+        <button type="submit" name="decision" value="reject">❌ Reject (Create New)</button>
+    </form>
+
+    <br>
+    <a href="/">⬅️ Go Back</a>
+</body>
+</html>
