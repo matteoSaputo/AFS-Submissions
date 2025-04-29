@@ -29,29 +29,23 @@ def index():
 
     return render_template("index.html")
 
-@app.route("/confirm-folder", methods=["GET", "POST"])
+@app.route("/confirm_folder", methods=["POST"])
 def confirm_folder():
-    afs_data = session.get('afs_data')
-    bus_name = session.get('bus_name')
-    suggested_folder = session.get('suggested_folder')
+    choice = request.form["choice"]
+    if choice == "use_existing":
+        customer_folder = session["matched_folder"]
+    else:
+        # User clicked "Create new folder"
+        bus_name = session["bus_name"]
+        root = "G:/Shared drives/AFS Drive/Customer Info/Customer Info"
+        customer_folder = os.path.join(root, bus_name)
 
-    if not (afs_data and bus_name):
-        return redirect(url_for('index'))
+    upload_path = session["upload_path"]
+    afs_data = session["afs_data"]
 
-    if request.method == "POST":
-        decision = request.form.get("decision")
-        if decision == "confirm":
-            customer_folder = suggested_folder
-        else:
-            root = "G:/Shared drives/AFS Drive/Customer Info/Customer Info"
-            customer_folder = os.path.join(root, bus_name)
+    process_submission(upload_path, afs_data, session["bus_name"], customer_folder)
 
-        # Now fully process
-        process_submission(session['upload_path'], afs_data, bus_name, customer_folder)
-
-        # return render_template("success.html", customer_folder=customer_folder)
-
-    return render_template("confirm_folder.html", suggested_folder=suggested_folder, bus_name=bus_name)
+    return f"✅ Submission processed and saved to:<br>{customer_folder}"
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
