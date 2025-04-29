@@ -15,6 +15,8 @@ def index():
         file = request.files["pdf"]
         if file:
             upload_path = os.path.join(app.config['UPLOAD_FOLDER'], "document.pdf")
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
             file.save(upload_path)
 
             afs_data, bus_name, matched_folder, match_score = prepare_submission(upload_path)
@@ -24,12 +26,17 @@ def index():
             session['bus_name'] = bus_name
             session['matched_folder'] = matched_folder
 
-            if matched_folder and match_score >= 90:
+            if matched_folder and match_score >= 95:
                 # Automatically use it
                 return redirect("/confirm_folder_auto")
             else:
                 # Ask user to confirm
-                return render_template("confirm_folder.html", matched_folder=matched_folder, bus_name=bus_name)
+                return render_template(
+                    "confirm_folder.html", 
+                    matched_folder=matched_folder, 
+                    bus_name=bus_name,
+                    match_score=match_score
+                )
 
     return render_template("index.html")
 
