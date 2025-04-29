@@ -11,50 +11,35 @@ def normalize_name(name):
     name = re.sub(r"\s+", " ", name)
     return name.strip()
 
-def find_matching_folder(full_name, base_folder, legal_name, dba_name):
-    # Generate name candidates for comparison
-    candidates = {
-        "Full": normalize_name(full_name),
-        "Legal": normalize_name(legal_name),
-        "DBA": normalize_name(dba_name)
-    }
+def find_matching_folder(business_name, base_folder, legal_name, dba_name):
+    candidates = []
 
-    # Get existing folders
+    # Prepare candidates: full name, legal name, dba name
+    if legal_name:
+        candidates.append(legal_name)
+    if dba_name:
+        candidates.append(dba_name)
+    candidates.append(business_name)
+
+    best_match = None
+    highest_score = 0
+
     existing_folders = [f for f in os.listdir(base_folder) if os.path.isdir(os.path.join(base_folder, f))]
     normalized_folders = {folder: normalize_name(folder) for folder in existing_folders}
 
-    # Prepare a list of (candidate type, match info)
-    results = []
-    for label, query in candidates.items():
-        if query:
-            match = process.extractOne(
-                query,
-                normalized_folders.values(),
-                scorer=fuzz.token_sort_ratio
-            )
-            if match:
-                match_name, score, *_ = match  # safely unpack only what we need
-                results.append((label, match_name, score))
+    for candidate in candidates:
+        result = process.extractOne(
+            normalize_name(candidate),
+            normalized_folders.values(),
+            scorer=fuzz.token_sort_ratio
+        )
+        if result and result[1] > highest_score:
+            highest_score = result[1]
+            best_match = result[0]
 
-    # Find best result among all
-    if not results:
-        print("No matches found.")
-        return None
+    if best_match:
+        matched_folder = next((folder for folder, norm in normalized_folders.items() if norm == best_match), None)
+        return matched_folder, highest_score
+    else:
+        return None, 0
 
-    best = max(results, key=lambda x: x[2])  # x[2] = score
-    label, matched_norm, score = best
-    matched_folder = next((folder for folder, norm in normalized_folders.items() if norm == matched_norm), None)
-
-    if score > 95:
-        print(f"Auto-selected ({label}) folder: '{matched_folder}' ({score}% match)")
-        return os.path.join(base_folder, matched_folder)
-
-    elif 30 <= score <= 95:
-        print(f"\nPotential match ({label}): '{matched_folder}' ({score}% match)")
-        print(f"🔍 Incoming: '{full_name}'")
-        response = input("Use this folder? [Y/n]: ").strip().lower()
-        if response in ("y", "yes", ""):
-            return os.path.join(base_folder, matched_folder)
-
-    print("No good match. A new folder will be created.")
-    return None

@@ -26,14 +26,14 @@ def prepare_submission(afs_path):
     root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Suggest a folder match but don't make it yet
-    match = find_matching_folder(
+    matched_folder, match_score = find_matching_folder(
         bus_name,
         root,
         legal_name=afs_data.get("Business Legal Name", ""),
         dba_name=afs_data.get("DBA", "")
     )
 
-    return afs_data, bus_name, match
+    return afs_data, bus_name, matched_folder, match_score
 
 
 def process_submission(upload_path, afs_data, bus_name, customer_folder):
@@ -63,7 +63,7 @@ def process_submission(upload_path, afs_data, bus_name, customer_folder):
     # Fill and save NRS Application (if not California/Virginia)
     state = afs_data.get("Business State", "")
     if state.lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
-        fill_nrs(afs_data, customer_folder)
+        fill_nrs(afs_data, customer_folder, bus_name)
 
     # Move AFS original app into customer folder
     destination_path = f"{customer_folder}/Business Application - {bus_name}.pdf"
