@@ -21,19 +21,19 @@ def prepare_submission(afs_path):
         dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
         bus_name = generate_business_name(bus_name, dba)
 
-    # Set root folder
-    root = "./test"
-    root = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
+    # Set drive folder
+    drive = "./test"
+    drive = "D:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Suggest a folder match but don't make it yet
     matched_folder, match_score = find_matching_folder(
         bus_name,
-        root,
+        drive,
         legal_name=afs_data.get("Business Legal Name", ""),
         dba_name=afs_data.get("DBA", "")
     )
 
-    return afs_data, bus_name, matched_folder, match_score, root
+    return afs_data, bus_name, matched_folder, match_score, drive
 
 
 def process_submission(upload_path, afs_data, bus_name, customer_folder):
