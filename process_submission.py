@@ -33,7 +33,7 @@ def prepare_submission(afs_path):
         dba_name=afs_data.get("DBA", "")
     )
 
-    return afs_data, bus_name, matched_folder, match_score
+    return afs_data, bus_name, matched_folder, match_score, root
 
 
 def process_submission(upload_path, afs_data, bus_name, customer_folder):
