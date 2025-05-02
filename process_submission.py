@@ -23,7 +23,7 @@ def prepare_submission(afs_path):
 
     # Set drive folder
     drive = "./test"
-    drive = "D:\Shared drives\AFS Drive\Customer Info\Customer Info"
+    drive = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Suggest a folder match but don't make it yet
     matched_folder, match_score = find_matching_folder(

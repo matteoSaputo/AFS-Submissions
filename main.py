@@ -1,8 +1,11 @@
 import tkinter as tk
 from tkinterdnd2 import TkinterDnD
 from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk
+
 import os
 import shutil
+import threading
 
 # Import submission modules
 from process_submission import process_submission, prepare_submission
@@ -27,6 +30,9 @@ class AFSApp:
         self.customer_folder = None
         self.matched_folder = None
         self.match_score = None
+
+        self.spinner_running = False
+        self.spinner_frame = 0
 
         # --- UI Elements ---
         self.title_label = tk.Label(
@@ -69,6 +75,24 @@ class AFSApp:
 
         self.drop_frame.drop_target_register('DND_Files')
         self.drop_frame.dnd_bind('<<Drop>>', self.handle_drop)
+
+        # --- Spinner setup ---
+        self.spinner_frames = []
+        spinner_path = "./assets/spinner.gif"
+        img = Image.open(spinner_path)
+
+        # Create a Canvas (instead of Label) for the spinner
+        self.spinner_canvas = tk.Canvas(root, width=100, height=100, highlightthickness=0, bg="#f7f7f7")
+        self.spinner_canvas_image = None
+
+        # Load all frames
+        try:
+            while True:
+                frame = ImageTk.PhotoImage(img.copy().convert('RGBA'))  # ensure transparency preserved
+                self.spinner_frames.append(frame)
+                img.seek(len(self.spinner_frames))  # move to next frame
+        except EOFError:
+            pass
 
         # Allow clicking to open file dialog
         self.drop_frame.bind("<Button-1>", lambda event: self.upload_pdf())
@@ -134,20 +158,29 @@ class AFSApp:
             messagebox.showerror("Error", "Please drop a valid PDF file.")
 
     def start_submission(self, upload_path):
-        try:
-            self.afs_data, self.bus_name, self.matched_folder, self.match_score, self.drive = prepare_submission(upload_path)
+        self.show_spinner()
 
-            if self.matched_folder:
-                self.match_label.config(
-                    text=f"Matched Folder:\n{self.matched_folder}\n\nBusiness Name:\n{self.bus_name}\n\nMatch Score: {self.match_score}%"
-                )
-            else:
-                self.match_label.config(text="No match found.\nWill create new folder.")
+        def process():
+            try:
+                self.afs_data, self.bus_name, self.matched_folder, self.match_score, self.drive = prepare_submission(upload_path)
 
-            self.confirm_btn.config(state=tk.NORMAL)
-            self.new_folder_btn.config(state=tk.NORMAL)
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+                if self.matched_folder:
+                    self.match_label.config(
+                        text=f"Matched Folder:\n{self.matched_folder}\n\nBusiness Name:\n{self.bus_name}\n\nMatch Score: {self.match_score}%"
+                    )
+                else:
+                    self.match_label.config(text="No match found.\nWill create new folder.")
+
+                self.confirm_btn.config(state=tk.NORMAL)
+                self.new_folder_btn.config(state=tk.NORMAL)
+
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+            
+            finally:
+                self.hide_spinner()
+
+        threading.Thread(target=process).start()
 
     def confirm_folder(self):
         self.finalize_submission(use_existing=True)
@@ -174,6 +207,33 @@ class AFSApp:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to process: {str(e)}")
 
+    def animate_spinner(self):
+        if not self.spinner_running:
+            return
+
+        frame = self.spinner_frames[self.spinner_frame]
+
+        if self.spinner_canvas_image is None:
+            # First time: create the image
+            self.spinner_canvas_image = self.spinner_canvas.create_image(50, 50, image=frame)
+        else:
+            # After that: just update the image
+            self.spinner_canvas.itemconfig(self.spinner_canvas_image, image=frame)
+
+        self.spinner_frame = (self.spinner_frame + 1) % len(self.spinner_frames)
+        self.root.after(100, self.animate_spinner)
+
+    def show_spinner(self):
+        self.spinner_canvas.place(relx=0.5, rely=0.8, anchor="center")
+        if not self.spinner_running:
+            self.spinner_running = True
+            self.animate_spinner()
+        self.root.update()
+    
+    def hide_spinner(self):
+        self.spinner_canvas.place_forget()
+        self.spinner_running = False
+        self.root.update()
 
 # --- Start app ---
 if __name__ == "__main__":
