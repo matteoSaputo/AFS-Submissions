@@ -8,7 +8,7 @@ import os
 import re
 import shutil
 
-def prepare_submission(afs_path):
+def prepare_submission(afs_path, drive):
     afs_data = extract_afs_data(afs_path)
 
     # Create a cleaned business name
@@ -21,9 +21,9 @@ def prepare_submission(afs_path):
         dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
         bus_name = generate_business_name(bus_name, dba)
 
-    # Set drive folder
-    drive = "./test"
-    drive = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
+    # # Set drive folder
+    # drive = "./test"
+    # drive = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Suggest a folder match but don't make it yet
     matched_folder, match_score = find_matching_folder(
@@ -33,7 +33,7 @@ def prepare_submission(afs_path):
         dba_name=afs_data.get("DBA", "")
     )
 
-    return afs_data, bus_name, matched_folder, match_score, drive
+    return afs_data, bus_name, matched_folder, match_score
 
 
 def process_submission(upload_path, afs_data, bus_name, customer_folder):

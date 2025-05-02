@@ -24,6 +24,7 @@ class AFSApp:
         self.root.geometry("700x800")
         self.root.configure(bg="#f7f7f7")
 
+        self.drive = self.load_drive_path()
         self.uploaded_file = None
         self.afs_data = None
         self.bus_name = None
@@ -43,6 +44,30 @@ class AFSApp:
         )
         self.title_label.pack(pady=(30, 20))
 
+        self.change_drive_btn = tk.Button(
+            root,
+            text="Change Drive Folder",
+            font=("Segoe UI", 12),
+            command=self.change_drive_path,
+            bg="#007BFF",
+            fg="white",
+            width=20
+        )
+        self.change_drive_btn.pack(pady=(0, 10))
+
+        self.drive_label = tk.Label(
+            root,
+            text="Drive: (not selected)",
+            font=("Segoe UI", 10),
+            bg="#f7f7f7",
+            fg="gray"
+        )
+        self.drive_label.pack(pady=(0, 20))
+        if self.drive:
+            self.drive_label.config(text=f"Drive: {self.drive}")
+        else:
+            self.drive_label.config(text="Drive: (not selected)")
+        
         self.upload_btn = tk.Button(
             root, 
             text="Select PDF File", 
@@ -54,7 +79,7 @@ class AFSApp:
             height=2
         )
         self.upload_btn.pack(pady=10)
-
+        
         self.drop_frame = tk.Frame(
             root,
             width=400,
@@ -162,7 +187,7 @@ class AFSApp:
 
         def process():
             try:
-                self.afs_data, self.bus_name, self.matched_folder, self.match_score, self.drive = prepare_submission(upload_path)
+                self.afs_data, self.bus_name, self.matched_folder, self.match_score = prepare_submission(upload_path, self.drive)
 
                 if self.matched_folder:
                     self.match_label.config(
@@ -214,10 +239,8 @@ class AFSApp:
         frame = self.spinner_frames[self.spinner_frame]
 
         if self.spinner_canvas_image is None:
-            # First time: create the image
             self.spinner_canvas_image = self.spinner_canvas.create_image(50, 50, image=frame)
         else:
-            # After that: just update the image
             self.spinner_canvas.itemconfig(self.spinner_canvas_image, image=frame)
 
         self.spinner_frame = (self.spinner_frame + 1) % len(self.spinner_frames)
@@ -234,6 +257,46 @@ class AFSApp:
         self.spinner_canvas.place_forget()
         self.spinner_running = False
         self.root.update()
+
+    def load_drive_path(self):
+        drive_path_file = "drive_path.txt"
+        
+        if os.path.exists(drive_path_file):
+            with open(drive_path_file, "r") as f:
+                drive_path = f.read().strip()
+                if os.path.exists(drive_path):
+                    return drive_path
+                else:
+                    messagebox.showwarning("Drive not found", "Previously saved drive path is missing. Please select it again.")
+
+        # Ask user to select drive folder
+        self.prompt_for_drive()
+        drive_path = filedialog.askdirectory(title="Select Shared Drive Root Folder")
+        if not drive_path:
+            messagebox.showerror("Error", "Drive selection is required. Exiting.")
+            self.root.destroy()
+            exit()
+
+        # Save selected path
+        with open(drive_path_file, "w") as f:
+            f.write(drive_path)
+
+        return drive_path
+
+    def change_drive_path(self):
+        drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
+        if drive_path:
+            with open("drive_path.txt", "w") as f:
+                f.write(drive_path)
+            self.drive = drive_path
+            self.drive_label.config(text=f"Drive: {self.drive}")
+            messagebox.showinfo("Drive Updated", "Shared drive path updated successfully!")
+
+    def prompt_for_drive(self):
+        messagebox.showinfo(
+            "Select Drive Folder",
+            "No drive selected.\n\nPlease choose your Google Drive shared folder before proceeding."
+        )
 
 # --- Start app ---
 if __name__ == "__main__":
