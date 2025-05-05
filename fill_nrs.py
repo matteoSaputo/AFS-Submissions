@@ -1,5 +1,6 @@
 import pdfrw
 from pdfrw.objects.pdfstring import PdfString
+from resource_path import resource_path
 import re
 import fitz
 import os
@@ -9,7 +10,7 @@ def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
     page = doc.load_page(0)
 
     rect = fitz.Rect(*field_coords["rect"])
-    font_path = "data/fonts/Allura-Regular.ttf"
+    font_path = resource_path("data/fonts/Allura-Regular.ttf")
     if not os.path.exists(font_path):
         raise FileNotFoundError(f"Font not found at {font_path}")
 
@@ -70,7 +71,7 @@ def fill_nrs(afs_data, output_folder, bus_name):
     nrs_data["Title"] = "CEO"
 
     # Fill the NRS fillable PDF
-    template_path = "./data/data/NRS Funding Application.pdf"
+    template_path = resource_path("./data/data/NRS Funding Application.pdf")
     output_path = f"{output_folder}/NRS Funding Application - {bus_name}.pdf"
     template_pdf = pdfrw.PdfReader(template_path)
 

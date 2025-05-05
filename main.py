@@ -7,8 +7,9 @@ import os
 import shutil
 import threading
 
-# Import submission modules
+# Import relevant modules
 from process_submission import process_submission, prepare_submission
+from resource_path import resource_path
 
 # --- Global constants ---
 UPLOAD_DIR = "./data/uploads"  # Local uploads
@@ -103,7 +104,7 @@ class AFSApp:
 
         # --- Spinner setup ---
         self.spinner_frames = []
-        spinner_path = "./assets/spinner.gif"
+        spinner_path = resource_path("assets/spinner.gif")
         img = Image.open(spinner_path)
 
         # Create a Canvas (instead of Label) for the spinner
@@ -166,7 +167,7 @@ class AFSApp:
             return
 
         # Copy uploaded PDF into upload folder
-        upload_path = os.path.join(UPLOAD_DIR, "document.pdf")
+        upload_path = resource_path(os.path.join(UPLOAD_DIR, "document.pdf"))
         shutil.copy(file_path, upload_path)
         self.uploaded_file = upload_path
         self.start_submission(upload_path=upload_path)
@@ -259,7 +260,7 @@ class AFSApp:
         self.root.update()
 
     def load_drive_path(self):
-        drive_path_file = "drive_path.txt"
+        drive_path_file = resource_path("drive_path.txt")
         
         if os.path.exists(drive_path_file):
             with open(drive_path_file, "r") as f:
