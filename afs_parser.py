@@ -144,8 +144,9 @@ def extract_afs_data(pdf_path):
         missing_values["Business Start Date"] = afs_data["Business Start Date"]
 
     # Generate missing values
-    overlay_afs_fields(pdf_path, "temp_overlay.pdf", missing_values)
-    os.replace("temp_overlay.pdf", pdf_path)
+    temp_path = resource_path("temp_overlay.pdf")
+    overlay_afs_fields(pdf_path, temp_path, missing_values)
+    os.replace(temp_path, pdf_path)
 
     # Special fix for "Date"
     lines = full_text.splitlines()

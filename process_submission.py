@@ -3,6 +3,7 @@ from fill_nrs import fill_nrs
 from redact_contact_info import redact_contact_info
 from find_matching_folder import find_matching_folder
 from generate_business_name import generate_business_name
+from resource_path import resource_path
 
 import os
 import re
@@ -20,10 +21,6 @@ def prepare_submission(afs_path, drive):
     if afs_data.get("DBA"):
         dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
         bus_name = generate_business_name(bus_name, dba)
-
-    # # Set drive folder
-    # drive = "./test"
-    # drive = "G:\Shared drives\AFS Drive\Customer Info\Customer Info"
 
     # Suggest a folder match but don't make it yet
     matched_folder, match_score = find_matching_folder(
@@ -46,7 +43,7 @@ def process_submission(upload_path, afs_data, bus_name, customer_folder):
     """
 
     # Rename afs app with business name
-    new_afs_path = f"./data/uploads/Business Application - {bus_name}.pdf"
+    new_afs_path = resource_path(f"data/uploads/Business Application - {bus_name}.pdf")
     os.rename(upload_path, new_afs_path)
 
     afs_source = new_afs_path

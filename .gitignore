@@ -165,3 +165,6 @@ test/
 
 # Local drive path
 drive_path.txt
+
+# batch file for deploying new version
+build_and_deploy.bat

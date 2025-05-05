@@ -10,9 +10,10 @@ import threading
 # Import relevant modules
 from process_submission import process_submission, prepare_submission
 from resource_path import resource_path
+from user_data import get_user_data_path
 
 # --- Global constants ---
-UPLOAD_DIR = "./data/uploads"  # Local uploads
+UPLOAD_DIR = resource_path("data/uploads")
 
 # Create upload dir if it doesn't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -260,8 +261,8 @@ class AFSApp:
         self.root.update()
 
     def load_drive_path(self):
-        drive_path_file = resource_path("drive_path.txt")
-        
+        drive_path_file = get_user_data_path("drive_path.txt")   
+
         if os.path.exists(drive_path_file):
             with open(drive_path_file, "r") as f:
                 drive_path = f.read().strip()
@@ -286,8 +287,10 @@ class AFSApp:
 
     def change_drive_path(self):
         drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
+        drive_path_file = get_user_data_path("drive_path.txt")   
+
         if drive_path:
-            with open("drive_path.txt", "w") as f:
+            with open(drive_path_file, "w") as f:
                 f.write(drive_path)
             self.drive = drive_path
             self.drive_label.config(text=f"Drive: {self.drive}")
