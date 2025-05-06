@@ -160,9 +160,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Images
-*.png 
-*.jpeg
-
 # test output
 test/
+
+# Local drive path
+drive_path.txt
+
+# batch file for deploying new version
+build_and_deploy.bat
