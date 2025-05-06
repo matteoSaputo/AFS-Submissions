@@ -11,9 +11,11 @@ import threading
 from process_submission import process_submission, prepare_submission
 from resource_path import resource_path
 from user_data import get_user_data_path
+from get_version import get_version
 
 # --- Global constants ---
 UPLOAD_DIR = resource_path("data/uploads")
+VERSION = get_version()
 
 # Create upload dir if it doesn't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -161,6 +163,17 @@ class AFSApp:
             width=20
         )
         self.new_folder_btn.pack(pady=5)
+
+        self.version_label = tk.Label(
+            root,
+            text=f"Version: {VERSION}",
+            font=("Segoe UI", 10),
+            bg="#f7f7f7",
+            fg="gray"
+        )
+        self.version_label.pack(side="bottom", pady=10)
+
+
 
     def upload_pdf(self):
         file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
