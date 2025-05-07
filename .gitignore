@@ -26,12 +26,6 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -166,5 +160,6 @@ test/
 # Local drive path
 drive_path.txt
 
-# batch file for deploying new version
-build_and_deploy.bat
+# binary executables
+*.exe
+releases/
