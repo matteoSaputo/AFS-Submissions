@@ -173,8 +173,6 @@ class AFSApp:
         )
         self.version_label.pack(side="bottom", pady=10)
 
-
-
     def upload_pdf(self):
         file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if not file_path:

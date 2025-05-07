@@ -168,3 +168,6 @@ drive_path.txt
 
 # batch file for deploying new version
 build_and_deploy.bat
+
+# binary executables
+*.exe
