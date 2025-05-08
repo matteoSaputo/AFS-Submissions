@@ -33,7 +33,7 @@ def prepare_submission(afs_path, drive):
     return afs_data, bus_name, matched_folder, match_score
 
 
-def process_submission(upload_path, afs_data, bus_name, customer_folder):
+def process_submission(upload_path, attatchements, afs_data, bus_name, customer_folder):
     """
     Takes in:
     - upload_path: path to uploaded PDF (e.g., "./data/uploads/document.pdf")
@@ -67,5 +67,10 @@ def process_submission(upload_path, afs_data, bus_name, customer_folder):
     if os.path.exists(destination_path):
         os.remove(destination_path)
     shutil.move(afs_source, customer_folder)
+
+    # Move bank statements and other attatchements
+    for file in attatchements:
+        if file != upload_path:
+            shutil.move(file, customer_folder)
 
     return customer_folder
