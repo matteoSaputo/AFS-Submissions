@@ -3,14 +3,15 @@ import re
 import random
 import fitz
 import os
-
+import sys
+import contextlib
 from modules.resource_path import resource_path
 
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"
 ]
 SECTION_HEADINGS = [
-    "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION", "ATTACH", "By signing below",
+    "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
 ]
 
 def normalize_field_name(field):
@@ -90,12 +91,48 @@ def extract_special_field_from_lines(lines, target_field="*Date:", field_name="D
             break
     return field_name, "Not Found"
 
+def is_likely_application(file_path):
+    @contextlib.contextmanager
+    def suppress_stdout_stderr():
+        with open(os.devnull, 'w') as fnull:
+            old_stdout = sys.stdout
+            old_stderr = sys.stderr
+            sys.stdout = fnull
+            sys.stderr = fnull
+            try:
+                yield
+            finally:
+                sys.stdout = old_stdout
+                sys.stderr = old_stderr
+                
+    try:
+        with suppress_stdout_stderr():    
+            with pdfplumber.open(file_path) as pdf:
+                page = pdf.pages[0]
+                text = page.extract_text()
+                if not text:
+                    return False
+                for header in SECTION_HEADINGS:
+                    if header not in text:
+                        return False
+                return True
+    except Exception:
+        return False
+
 def extract_afs_data(pdf_path):
     """Main function to extract cleaned AFS application data from a PDF."""
+    if not is_likely_application(pdf_path):
+        return None
+    
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
+        print(pdf_path)
         for page in pdf.pages:
             full_text += page.extract_text() + "\n"
+
+    # for header in SECTION_HEADINGS:
+    #     if header not in full_text:
+    #         return None
 
     start = full_text.find("BUSINESS INFORMATION")
     if start != -1:

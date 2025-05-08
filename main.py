@@ -9,6 +9,7 @@ import threading
 
 # Import relevant modules
 from modules.process_submission import process_submission, prepare_submission
+from modules.afs_parser import extract_afs_data
 from modules.resource_path import resource_path
 from modules.user_data import get_user_data_path
 from modules.get_version import get_version
@@ -29,7 +30,8 @@ class AFSApp:
         self.root.configure(bg="#f7f7f7")
 
         self.drive = self.load_drive_path()
-        self.uploaded_file = None
+        self.uploaded_files = []
+        self.selected_application_file = None
         self.afs_data = None
         self.bus_name = None
         self.customer_folder = None
@@ -174,26 +176,33 @@ class AFSApp:
         self.version_label.pack(side="bottom", pady=10)
 
     def upload_pdf(self):
-        file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
-        if not file_path:
+        file_paths = filedialog.askopenfilenames(filetypes=[("PDF files", "*.pdf")])
+        if not file_paths:
             return
-
-        # Copy uploaded PDF into upload folder
-        upload_path = resource_path(os.path.join(UPLOAD_DIR, "document.pdf"))
-        shutil.copy(file_path, upload_path)
-        self.uploaded_file = upload_path
-        self.start_submission(upload_path=upload_path)
+        self.handle_files(file_paths)
 
     def handle_drop(self, event):
         self.drop_frame.config(bg="#d0f0d0")
-        dropped_file = event.data.strip('{}')  # Clean up Windows paths
-        if dropped_file.lower().endswith(".pdf"):
-            upload_path = os.path.join(UPLOAD_DIR, "document.pdf")
-            shutil.copy(dropped_file, upload_path)
-            self.uploaded_file = upload_path
-            self.start_submission(upload_path=upload_path)
-        else:
-            messagebox.showerror("Error", "Please drop a valid PDF file.")
+        dropped_files = self.root.tk.splitlist(event.data)
+        pdf_files = [f.strip('{}') for f in dropped_files]
+        self.handle_files(pdf_files)
+
+    def handle_files(self, file_list):
+        self.uploaded_files =[]
+
+        for original_path in file_list:
+            filename = os.path.basename(original_path)
+            dest_path = os.path.join(UPLOAD_DIR, filename)
+            shutil.copy(original_path, dest_path)
+            self.uploaded_files.append(dest_path)
+        
+        self.selected_application_file = self.uploaded_files[0]
+        for file in self.uploaded_files:
+            if extract_afs_data(file):
+                self.selected_application_file = file
+        
+        self.start_submission(self.selected_application_file)
+
 
     def start_submission(self, upload_path):
         self.show_spinner()
@@ -233,7 +242,13 @@ class AFSApp:
             else:
                 self.customer_folder = os.path.join(self.drive, self.bus_name)
             
-            process_submission(self.uploaded_file, self.afs_data, self.bus_name, self.customer_folder)
+            process_submission(
+                self.selected_application_file, 
+                self.uploaded_files,
+                self.afs_data, 
+                self.bus_name,
+                self.customer_folder
+            )
 
             messagebox.showinfo("Success", "Submission processed successfully!")
 
