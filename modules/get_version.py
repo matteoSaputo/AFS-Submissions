@@ -1,5 +1,5 @@
 import os
-from resource_path import resource_path
+from modules.resource_path import resource_path
 
 def get_version():
     version_file = resource_path("version.txt")

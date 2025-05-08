@@ -8,10 +8,10 @@ import shutil
 import threading
 
 # Import relevant modules
-from process_submission import process_submission, prepare_submission
-from resource_path import resource_path
-from user_data import get_user_data_path
-from get_version import get_version
+from modules.process_submission import process_submission, prepare_submission
+from modules.resource_path import resource_path
+from modules.user_data import get_user_data_path
+from modules.get_version import get_version
 
 # --- Global constants ---
 UPLOAD_DIR = resource_path("data/uploads")

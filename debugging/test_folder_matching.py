@@ -4,7 +4,7 @@ import os
 # Add parent directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from find_matching_folder import find_matching_folder
+from modules.find_matching_folder import find_matching_folder
 
 
 def setup_mock_folders(base_path, folder_names):
