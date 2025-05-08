@@ -1,9 +1,9 @@
-from afs_parser import extract_afs_data
-from fill_nrs import fill_nrs
-from redact_contact_info import redact_contact_info
-from find_matching_folder import find_matching_folder
-from generate_business_name import generate_business_name
-from resource_path import resource_path
+from modules.afs_parser import extract_afs_data
+from modules.fill_nrs import fill_nrs
+from modules.redact_contact_info import redact_contact_info
+from modules.find_matching_folder import find_matching_folder
+from modules.generate_business_name import generate_business_name
+from modules.resource_path import resource_path
 
 import os
 import re

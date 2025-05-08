@@ -4,7 +4,7 @@ import random
 import fitz
 import os
 
-from resource_path import resource_path
+from modules.resource_path import resource_path
 
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"
@@ -30,7 +30,7 @@ def overlay_afs_fields(input_path, output_path, afs_data):
     }
 
     # Load the custom Lucida Console font
-    font_path = resource_path("./data/fonts/LUCON.TTF")
+    font_path = resource_path("../data/fonts/LUCON.TTF")
 
     # Font settings
     font_size = 9
