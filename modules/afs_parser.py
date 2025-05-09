@@ -31,7 +31,7 @@ def overlay_afs_fields(input_path, output_path, afs_data):
     }
 
     # Load the custom Lucida Console font
-    font_path = resource_path("../data/fonts/LUCON.TTF")
+    font_path = resource_path("data/fonts/LUCON.TTF")
 
     # Font settings
     font_size = 9
@@ -126,13 +126,8 @@ def extract_afs_data(pdf_path):
     
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
-        print(pdf_path)
         for page in pdf.pages:
             full_text += page.extract_text() + "\n"
-
-    # for header in SECTION_HEADINGS:
-    #     if header not in full_text:
-    #         return None
 
     start = full_text.find("BUSINESS INFORMATION")
     if start != -1:

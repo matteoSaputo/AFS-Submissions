@@ -7,4 +7,4 @@ def resource_path(relative_path):
         base_path = sys._MEIPASS  # created by PyInstaller at runtime
     except Exception:
         base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
+    return os.path.abspath(os.path.join(base_path, relative_path))

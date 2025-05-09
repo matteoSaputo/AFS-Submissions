@@ -41,36 +41,31 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
     - bus_name: sanitized business name string
     - customer_folder: confirmed or created folder
     """
+    # --- File Paths ---
+    business_application = resource_path(f"data/uploads/Business Application - {bus_name}.pdf")
+    business_sub_application = resource_path(f"data/uploads/Business Sub Application - {bus_name}.pdf")
+    nrs_application = resource_path(f"data/uploads/NRS Funding Application - {bus_name}.pdf")
 
     # Rename afs app with business name
-    new_afs_path = resource_path(f"data/uploads/Business Application - {bus_name}.pdf")
-    os.rename(upload_path, new_afs_path)
-
-    afs_source = new_afs_path
+    if not os.path.exists(business_application):
+        os.rename(upload_path, business_application)
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)
 
     # Save a copy of the AFS app WITHOUT contact info
-    redact_contact_info(
-        afs_source,
-        f"{customer_folder}/Business Sub Application - {bus_name}.pdf"
-    )
+    attatchements.append(redact_contact_info(business_application, business_sub_application))
 
-    # Fill and save NRS Application (if not California/Virginia)
-    state = afs_data.get("Business State", "")
-    if state.lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
-        fill_nrs(afs_data, customer_folder, bus_name)
-
-    # Move AFS original app into customer folder
-    destination_path = f"{customer_folder}/Business Application - {bus_name}.pdf"
-    if os.path.exists(destination_path):
-        os.remove(destination_path)
-    shutil.move(afs_source, customer_folder)
+    # Fill and save NRS Application
+    attatchements.append(fill_nrs(afs_data, nrs_application))
 
     # Move bank statements and other attatchements
     for file in attatchements:
-        if file != upload_path:
-            shutil.move(file, customer_folder)
+        if not os.path.exists(file):
+            continue
+        new_path = os.path.join(customer_folder, os.path.basename(file))
+        if os.path.exists(new_path):
+            os.unlink(new_path)
+        shutil.move(file, customer_folder)
 
-    return customer_folder
+    return attatchements

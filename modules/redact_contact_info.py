@@ -1,7 +1,12 @@
 import fitz  # PyMuPDF
 import re
+import os
+from modules.resource_path import resource_path
 
 def redact_contact_info(input_path, output_path):
+    if os.path.exists(output_path):
+        os.unlink(output_path)
+
     doc = fitz.open(input_path)
 
     # Define patterns
@@ -26,6 +31,9 @@ def redact_contact_info(input_path, output_path):
                             page.add_redact_annot(rect)
         page.apply_redactions()
 
-    doc.save(output_path)
+    temp = resource_path("test.pdf")
+    doc.save(temp)
+    os.rename(temp, output_path)
     print(f"Saved Sub Application to: {output_path}")
 
+    return output_path

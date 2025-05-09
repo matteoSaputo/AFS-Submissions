@@ -184,7 +184,7 @@ class AFSApp:
     def handle_drop(self, event):
         self.drop_frame.config(bg="#d0f0d0")
         dropped_files = self.root.tk.splitlist(event.data)
-        pdf_files = [f.strip('{}') for f in dropped_files]
+        pdf_files = [os.path.abspath(f.strip('{}')) for f in dropped_files]
         self.handle_files(pdf_files)
 
     def clean_uploads_folder(self):

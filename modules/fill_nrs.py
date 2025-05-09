@@ -1,7 +1,6 @@
 import pdfrw
 from pdfrw.objects.pdfstring import PdfString
 from modules.resource_path import resource_path
-import re
 import fitz
 import os
 
@@ -26,7 +25,13 @@ def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
 
     doc.save(output_path)
 
-def fill_nrs(afs_data, output_folder, bus_name):
+def fill_nrs(afs_data, output_path):
+    if os.path.exists(output_path):
+        os.unlink(output_path)
+
+    state = afs_data.get("Business State", "")
+    if state.lower() in ['ca', 'california', 'cali', 'va', 'virginia']:
+        return None
 
     # Mapping AFS fields to NRS fields
     field_mapping = {
@@ -71,8 +76,7 @@ def fill_nrs(afs_data, output_folder, bus_name):
     nrs_data["Title"] = "CEO"
 
     # Fill the NRS fillable PDF
-    template_path = resource_path("./data/data/NRS Funding Application.pdf")
-    output_path = f"{output_folder}/NRS Funding Application - {bus_name}.pdf"
+    template_path = resource_path("data/data/NRS Funding Application.pdf")
     template_pdf = pdfrw.PdfReader(template_path)
 
     # Make sure appearance updates
@@ -95,10 +99,11 @@ def fill_nrs(afs_data, output_folder, bus_name):
     # Generate scripted signature
     insert_script_signature(
         output_path, 
-        f"{output_folder}/temp.pdf", 
+        "temp.pdf", 
         afs_data["Primary Owner Name"], 
         { "rect": (120, 705, 300, 805) }
     )
-    os.replace(f"{output_folder}/temp.pdf", output_path)
+    os.replace("temp.pdf", output_path)
 
     print("Filled NRS Application saved to:", output_path)
+    return output_path
