@@ -76,7 +76,7 @@ class AFSApp:
         
         self.upload_btn = tk.Button(
             root, 
-            text="Select PDF File", 
+            text="Select File(s)", 
             font=("Segoe UI", 14), 
             command=self.upload_pdf, 
             bg="#4CAF50", 
@@ -98,7 +98,7 @@ class AFSApp:
 
         self.drop_label = tk.Label(
             self.drop_frame,
-            text="Drag and Drop PDF Here\nor Click to Browse",
+            text="Drag and Drop File(s) Here\nor Click to Browse",
             font=("Arial", 12),
             bg="#f0f0f0"
         )
@@ -186,6 +186,7 @@ class AFSApp:
         dropped_files = self.root.tk.splitlist(event.data)
         pdf_files = [os.path.abspath(f.strip('{}')) for f in dropped_files]
         self.handle_files(pdf_files)
+        self.drop_frame.config(bg="#f0f0f0")
 
     def clean_uploads_folder(self):
         files_to_delete =[f for f in os.listdir(UPLOAD_DIR) if f != "keep.txt"]
@@ -204,47 +205,46 @@ class AFSApp:
                 print(f"Failed to delete {file_path}. {e}")
 
     def handle_files(self, file_list):
-        self.clean_uploads_folder()
-        self.uploaded_files =[]
-
-        for original_path in file_list:
-            filename = os.path.basename(original_path)
-            dest_path = os.path.join(UPLOAD_DIR, filename)
-            shutil.copy(original_path, dest_path)
-            self.uploaded_files.append(dest_path)
-        
-        self.selected_application_file = self.uploaded_files[0]
-        for file in self.uploaded_files:
-            if extract_afs_data(file):
-                self.selected_application_file = file
-        
-        self.start_submission(self.selected_application_file)
-
-
-    def start_submission(self, upload_path):
         self.show_spinner()
 
         def process():
-            try:
-                self.afs_data, self.bus_name, self.matched_folder, self.match_score = prepare_submission(upload_path, self.drive)
+            self.clean_uploads_folder()
+            self.uploaded_files =[]
 
-                if self.matched_folder:
-                    self.match_label.config(
-                        text=f"Matched Folder:\n{self.matched_folder}\n\nBusiness Name:\n{self.bus_name}\n\nMatch Score: {self.match_score}%"
-                    )
-                else:
-                    self.match_label.config(text="No match found.\nWill create new folder.")
-
-                self.confirm_btn.config(state=tk.NORMAL)
-                self.new_folder_btn.config(state=tk.NORMAL)
-
-            except Exception as e:
-                messagebox.showerror("Error", str(e))
+            for original_path in file_list:
+                filename = os.path.basename(original_path)
+                dest_path = os.path.join(UPLOAD_DIR, filename)
+                shutil.copy(original_path, dest_path)
+                self.uploaded_files.append(dest_path)
             
-            finally:
-                self.hide_spinner()
+            self.selected_application_file = self.uploaded_files[0]
+            for file in self.uploaded_files:
+                if extract_afs_data(file):
+                    self.selected_application_file = file
+            
+            self.start_submission(self.selected_application_file)
 
         threading.Thread(target=process).start()
+
+    def start_submission(self, upload_path):
+        try:
+            self.afs_data, self.bus_name, self.matched_folder, self.match_score = prepare_submission(upload_path, self.drive)
+
+            if self.matched_folder:
+                self.match_label.config(
+                    text=f"Matched Folder:\n{self.matched_folder}\n\nBusiness Name:\n{self.bus_name}\n\nMatch Score: {self.match_score}%"
+                )
+            else:
+                self.match_label.config(text="No match found.\nWill create new folder.")
+
+            self.confirm_btn.config(state=tk.NORMAL)
+            self.new_folder_btn.config(state=tk.NORMAL)
+
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+            
+        finally:
+            self.hide_spinner()
 
     def confirm_folder(self):
         self.finalize_submission(use_existing=True)

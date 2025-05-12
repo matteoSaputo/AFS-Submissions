@@ -4,10 +4,10 @@ from modules.redact_contact_info import redact_contact_info
 from modules.find_matching_folder import find_matching_folder
 from modules.generate_business_name import generate_business_name
 from modules.resource_path import resource_path
+from modules.migrate_to_drive import migrate_to_drive
 
 import os
 import re
-import shutil
 
 def prepare_submission(afs_path, drive):
     afs_data = extract_afs_data(afs_path)
@@ -37,6 +37,7 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
     """
     Takes in:
     - upload_path: path to uploaded PDF (e.g., "./data/uploads/document.pdf")
+    - attatchements: list of uploaded attatchements
     - afs_data: extracted data dictionary
     - bus_name: sanitized business name string
     - customer_folder: confirmed or created folder
@@ -49,6 +50,7 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
     # Rename afs app with business name
     if not os.path.exists(business_application):
         os.rename(upload_path, business_application)
+    attatchements.append(business_application)
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)
@@ -60,12 +62,6 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
     attatchements.append(fill_nrs(afs_data, nrs_application))
 
     # Move bank statements and other attatchements
-    for file in attatchements:
-        if not os.path.exists(file):
-            continue
-        new_path = os.path.join(customer_folder, os.path.basename(file))
-        if os.path.exists(new_path):
-            os.unlink(new_path)
-        shutil.move(file, customer_folder)
+    migrate_to_drive(attatchements, customer_folder)
 
     return attatchements
