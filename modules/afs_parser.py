@@ -19,7 +19,10 @@ def normalize_field_name(field):
     spaced = re.sub(r'(?<=[a-zA-Z])(?=[A-Z])', ' ', field)
     return spaced.strip().title()
 
-def overlay_afs_fields(input_path, output_path, afs_data):
+def overlay_afs_fields(input_path, output_path, missing_data):
+    if not missing_data:
+        return None
+
     doc = fitz.open(input_path)
     page = doc[0]  # Assuming all data is on page 1
 
@@ -37,7 +40,7 @@ def overlay_afs_fields(input_path, output_path, afs_data):
     font_size = 9
     font_color = (0, 0, 0)  # Black
 
-    for field, value in afs_data.items():
+    for field, value in missing_data.items():
         if field in field_coords and value.strip():
             x, y = field_coords[field]
             # Use insert_textbox to allow font embedding
@@ -53,6 +56,7 @@ def overlay_afs_fields(input_path, output_path, afs_data):
             )
 
     doc.save(output_path)
+    return output_path
 
 def truncate_name_at_word(name, limit=40):
     if len(name) <= limit:
@@ -177,8 +181,8 @@ def extract_afs_data(pdf_path):
 
     # Generate missing values
     temp_path = resource_path("temp_overlay.pdf")
-    overlay_afs_fields(pdf_path, temp_path, missing_values)
-    os.replace(temp_path, pdf_path)
+    if overlay_afs_fields(pdf_path, temp_path, missing_values):
+        os.replace(temp_path, pdf_path)
 
     # Special fix for "Date"
     lines = full_text.splitlines()

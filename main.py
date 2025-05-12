@@ -9,7 +9,7 @@ import threading
 
 # Import relevant modules
 from modules.process_submission import process_submission, prepare_submission
-from modules.afs_parser import extract_afs_data
+from modules.afs_parser import is_likely_application
 from modules.resource_path import resource_path
 from modules.user_data import get_user_data_path
 from modules.get_version import get_version
@@ -17,6 +17,7 @@ from modules.get_version import get_version
 # --- Global constants ---
 UPLOAD_DIR = resource_path("data/uploads")
 VERSION = get_version()
+BG_COLOR = "#f7f7f7"
 
 # Create upload dir if it doesn't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -27,7 +28,7 @@ class AFSApp:
         self.root = root
         self.root.title("AFS Submission Tool")
         self.root.geometry("700x800")
-        self.root.configure(bg="#f7f7f7")
+        self.root.configure(bg=BG_COLOR)
 
         self.drive = self.load_drive_path()
         self.uploaded_files = []
@@ -46,7 +47,7 @@ class AFSApp:
             root, 
             text="Upload AFS Application", 
             font=("Segoe UI", 18, "bold"), 
-            bg="#f7f7f7"
+            bg=BG_COLOR
         )
         self.title_label.pack(pady=(30, 20))
 
@@ -65,7 +66,7 @@ class AFSApp:
             root,
             text="Drive: (not selected)",
             font=("Segoe UI", 10),
-            bg="#f7f7f7",
+            bg=BG_COLOR,
             fg="gray"
         )
         self.drive_label.pack(pady=(0, 20))
@@ -74,8 +75,11 @@ class AFSApp:
         else:
             self.drive_label.config(text="Drive: (not selected)")
         
+        self.add_remove_files_frame = tk.Frame(root, bg=BG_COLOR)
+        self.add_remove_files_frame.pack(pady=10)
+
         self.upload_btn = tk.Button(
-            root, 
+            self.add_remove_files_frame, 
             text="Select File(s)", 
             font=("Segoe UI", 14), 
             command=self.upload_pdf, 
@@ -84,8 +88,20 @@ class AFSApp:
             width=20, 
             height=2
         )
-        self.upload_btn.pack(pady=10)
-        
+        self.upload_btn.pack(side="left", padx=10)
+
+        self.clear_files_btn = tk.Button(
+            self.add_remove_files_frame,
+            text="Clear",
+            font=("Segoe UI", 14),
+            command=self.clean_uploads_folder,
+            bg="#af4c4c",
+            fg="white",
+            width=10,
+            height=2
+        )
+        self.clear_files_btn.pack(side="left", padx=10)
+
         self.drop_frame = tk.Frame(
             root,
             width=400,
@@ -107,13 +123,22 @@ class AFSApp:
         self.drop_frame.drop_target_register('DND_Files')
         self.drop_frame.dnd_bind('<<Drop>>', self.handle_drop)
 
+        # Allow clicking to open file dialog
+        self.drop_frame.bind("<Button-1>", lambda event: self.upload_pdf())
+
+        self.drop_frame.dnd_bind('<<DragEnter>>', lambda e: self.drop_frame.config(bg="#d0f0d0"))
+        self.drop_frame.dnd_bind('<<DragLeave>>', lambda e: self.drop_frame.config(bg="#f0f0f0"))
+
+        self.root.drop_target_register('DND_Files')
+        self.root.dnd_bind('<<Drop>>', self.handle_drop)
+
         # --- Spinner setup ---
         self.spinner_frames = []
         spinner_path = resource_path("assets/spinner.gif")
         img = Image.open(spinner_path)
 
         # Create a Canvas (instead of Label) for the spinner
-        self.spinner_canvas = tk.Canvas(root, width=100, height=100, highlightthickness=0, bg="#f7f7f7")
+        self.spinner_canvas = tk.Canvas(root, width=100, height=100, highlightthickness=0, bg=BG_COLOR)
         self.spinner_canvas_image = None
 
         # Load all frames
@@ -125,25 +150,19 @@ class AFSApp:
         except EOFError:
             pass
 
-        # Allow clicking to open file dialog
-        self.drop_frame.bind("<Button-1>", lambda event: self.upload_pdf())
-
-        self.drop_frame.dnd_bind('<<DragEnter>>', lambda e: self.drop_frame.config(bg="#d0f0d0"))
-        self.drop_frame.dnd_bind('<<DragLeave>>', lambda e: self.drop_frame.config(bg="#f0f0f0"))
-
-        self.root.drop_target_register('DND_Files')
-        self.root.dnd_bind('<<Drop>>', self.handle_drop)
-
         self.match_label = tk.Label(
             root, 
             text="", 
             font=("Segoe UI", 12), 
-            bg="#f7f7f7"
+            bg=BG_COLOR
         )
         self.match_label.pack(pady=20)
 
+        self.folder_button_frame = tk.Frame(root, bg=BG_COLOR)
+        self.folder_button_frame.pack(pady=10)
+
         self.confirm_btn = tk.Button(
-            root, 
+            self.folder_button_frame, 
             text="✅ Use This Folder", 
             font=("Segoe UI", 12), 
             command=self.confirm_folder, 
@@ -152,10 +171,10 @@ class AFSApp:
             state=tk.DISABLED,
             width=20
         )
-        self.confirm_btn.pack(pady=5)
+        self.confirm_btn.pack(side="left", padx=5)
 
         self.new_folder_btn = tk.Button(
-            root, 
+            self.folder_button_frame, 
             text="❌ Create New Folder", 
             font=("Segoe UI", 12), 
             command=self.create_new_folder, 
@@ -164,13 +183,13 @@ class AFSApp:
             state=tk.DISABLED,
             width=20
         )
-        self.new_folder_btn.pack(pady=5)
+        self.new_folder_btn.pack(side="left", padx=15)
 
         self.version_label = tk.Label(
             root,
             text=f"Version: {VERSION}",
             font=("Segoe UI", 10),
-            bg="#f7f7f7",
+            bg=BG_COLOR,
             fg="gray"
         )
         self.version_label.pack(side="bottom", pady=10)
@@ -203,25 +222,34 @@ class AFSApp:
                     shutil.rmtree(file_path)
             except Exception as e:
                 print(f"Failed to delete {file_path}. {e}")
+        #Reset UI
+        self.reset_folder_UI()
 
     def handle_files(self, file_list):
         self.show_spinner()
 
         def process():
-            self.clean_uploads_folder()
-            self.uploaded_files =[]
+            likely_application = ""
+            for file in file_list:
+                if is_likely_application(file):
+                    likely_application = file
 
+            if likely_application:
+                self.clean_uploads_folder()
+            self.uploaded_files = []
+            
             for original_path in file_list:
                 filename = os.path.basename(original_path)
                 dest_path = os.path.join(UPLOAD_DIR, filename)
+                if filename == os.path.basename(likely_application):
+                    self.selected_application_file = dest_path
                 shutil.copy(original_path, dest_path)
                 self.uploaded_files.append(dest_path)
             
-            self.selected_application_file = self.uploaded_files[0]
-            for file in self.uploaded_files:
-                if extract_afs_data(file):
-                    self.selected_application_file = file
-            
+            if not likely_application:
+                self.hide_spinner()
+                return
+
             self.start_submission(self.selected_application_file)
 
         threading.Thread(target=process).start()
@@ -270,12 +298,15 @@ class AFSApp:
             messagebox.showinfo("Success", "Submission processed successfully!")
 
             # Reset UI
-            self.match_label.config(text="")
-            self.confirm_btn.config(state=tk.DISABLED)
-            self.new_folder_btn.config(state=tk.DISABLED)
+            self.reset_folder_UI()
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to process: {str(e)}")
+
+    def reset_folder_UI(self):
+        self.match_label.config(text="")
+        self.confirm_btn.config(state=tk.DISABLED)
+        self.new_folder_btn.config(state=tk.DISABLED)
 
     def animate_spinner(self):
         if not self.spinner_running:
