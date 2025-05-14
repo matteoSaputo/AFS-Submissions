@@ -27,7 +27,7 @@ class AFSApp:
     def __init__(self, root):
         self.root = root
         self.root.title("AFS Submission Tool")
-        self.root.geometry("700x800")
+        self.root.geometry("800x800")
         self.root.configure(bg=BG_COLOR)
 
         self.drive = self.load_drive_path()
@@ -41,6 +41,8 @@ class AFSApp:
 
         self.spinner_running = False
         self.spinner_frame = 0
+
+        self.max_visible_rows = 8
 
         # --- UI Elements ---
         self.title_label = tk.Label(
@@ -74,51 +76,28 @@ class AFSApp:
             self.drive_label.config(text=f"Drive: {self.drive}")
         else:
             self.drive_label.config(text="Drive: (not selected)")
-        
-        self.add_remove_files_frame = tk.Frame(root, bg=BG_COLOR)
-        self.add_remove_files_frame.pack(pady=10)
-
-        self.upload_btn = tk.Button(
-            self.add_remove_files_frame, 
-            text="Select File(s)", 
-            font=("Segoe UI", 14), 
-            command=self.upload_pdf, 
-            bg="#4CAF50", 
-            fg="white", 
-            width=20, 
-            height=2
-        )
-        self.upload_btn.pack(side="left", padx=10)
-
-        self.clear_files_btn = tk.Button(
-            self.add_remove_files_frame,
-            text="Clear",
-            font=("Segoe UI", 14),
-            command=self.clean_uploads_folder,
-            bg="#af4c4c",
-            fg="white",
-            width=10,
-            height=2
-        )
-        self.clear_files_btn.pack(side="left", padx=10)
 
         self.drop_frame = tk.Frame(
             root,
-            width=400,
-            height=150,
+            width=650,
+            height=200,
             bg="#f0f0f0",
             highlightbackground="gray",
             highlightthickness=2
         )
         self.drop_frame.pack(pady=10)
 
-        self.drop_label = tk.Label(
-            self.drop_frame,
-            text="Drag and Drop File(s) Here\nor Click to Browse",
-            font=("Arial", 12),
-            bg="#f0f0f0"
+        self.upload_btn = tk.Button(
+            self.drop_frame, 
+            text="Click to Select File(s)\nor Drag and Drop", 
+            font=("Segoe UI", 14), 
+            command=self.upload_pdf, 
+            bg="#007BFF", 
+            fg="white", 
+            width=20, 
+            height=2
         )
-        self.drop_label.place(relx=0.5, rely=0.5, anchor="center")
+        self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
 
         self.drop_frame.drop_target_register('DND_Files')
         self.drop_frame.dnd_bind('<<Drop>>', self.handle_drop)
@@ -131,6 +110,24 @@ class AFSApp:
 
         self.root.drop_target_register('DND_Files')
         self.root.dnd_bind('<<Drop>>', self.handle_drop)
+
+        self.file_list_frame = tk.Frame(self.drop_frame, bg="#f0f0f0")
+
+        self.file_listbox = tk.Listbox(
+            self.file_list_frame,
+            font=("Arial", 10),
+            bg="#f0f0f0",
+            selectbackground="#d0f0d0",
+            activestyle="none",
+        )
+
+        self.scrollbar = tk.Scrollbar(
+            self.file_list_frame, 
+            orient="vertical",
+            command=self.file_listbox.yview
+        )
+
+        self.file_listbox.config(yscrollcommand=self.scrollbar.set)
 
         # --- Spinner setup ---
         self.spinner_frames = []
@@ -194,8 +191,20 @@ class AFSApp:
         )
         self.version_label.pack(side="bottom", pady=10)
 
+        self.clear_files_btn = tk.Button(
+            root,
+            text="Clear",
+            font=("Segoe UI", 14),
+            command=lambda: [self.clean_uploads_folder(), self.reset_folder_UI()],
+            bg="#545151",
+            fg="white",
+            width=10,
+            height=1
+        )
+        self.clear_files_btn.pack(side="bottom", pady=10)
+
     def upload_pdf(self):
-        file_paths = filedialog.askopenfilenames(filetypes=[("PDF files", "*.pdf")])
+        file_paths = filedialog.askopenfilenames()
         if not file_paths:
             return
         self.handle_files(file_paths)
@@ -222,8 +231,6 @@ class AFSApp:
                     shutil.rmtree(file_path)
             except Exception as e:
                 print(f"Failed to delete {file_path}. {e}")
-        #Reset UI
-        self.reset_folder_UI()
 
     def handle_files(self, file_list):
         self.show_spinner()
@@ -236,7 +243,7 @@ class AFSApp:
 
             if likely_application:
                 self.clean_uploads_folder()
-            self.uploaded_files = []
+                self.reset_folder_UI()
             
             for original_path in file_list:
                 filename = os.path.basename(original_path)
@@ -245,6 +252,24 @@ class AFSApp:
                     self.selected_application_file = dest_path
                 shutil.copy(original_path, dest_path)
                 self.uploaded_files.append(dest_path)
+
+            def limit_file_name(file, limit=50):
+                name, extension = os.path.splitext(file)
+                if len(file) > limit:
+                    return f"{name[:limit]}...{extension}"
+                return file
+            
+            self.file_listbox.delete(0, tk.END)
+            for path in self.uploaded_files:
+                self.file_listbox.insert(tk.END, limit_file_name(os.path.basename(path)))
+
+            visible_rows = min(len(self.uploaded_files), self.max_visible_rows)
+            self.file_listbox.config(height=visible_rows)
+            
+            self.upload_btn.place_forget()
+            
+            if not self.file_list_frame.winfo_ismapped():
+                self.show_file_list_frame()
             
             if not likely_application:
                 self.hide_spinner()
@@ -304,9 +329,38 @@ class AFSApp:
             messagebox.showerror("Error", f"Failed to process: {str(e)}")
 
     def reset_folder_UI(self):
+        self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
+        self.uploaded_files = []
+        if self.file_list_frame.winfo_ismapped():
+            self.hide_file_list_frame()
+        self.file_listbox.delete(0, tk.END)
         self.match_label.config(text="")
         self.confirm_btn.config(state=tk.DISABLED)
         self.new_folder_btn.config(state=tk.DISABLED)
+
+    def show_file_list_frame(self):
+        self.file_list_frame.place(relx=0.10, rely=0.10, relwidth=0.75, anchor="nw")
+        self.show_file_listbox()
+
+        if len(self.uploaded_files) > self.max_visible_rows:
+            self.show_file_scrollbar()
+        else:
+            self.hide_file_scrollbar()
+
+    def hide_file_list_frame(self):
+        self.file_list_frame.place_forget()
+
+    def show_file_listbox(self):
+        self.file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    def hide_file_listbox(self):
+        self.file_listbox.pack_forget()
+
+    def show_file_scrollbar(self):
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    def hide_file_scrollbar(self):
+        self.scrollbar.pack_forget()
 
     def animate_spinner(self):
         if not self.spinner_running:
