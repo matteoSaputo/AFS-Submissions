@@ -155,7 +155,7 @@ cython_debug/
 #.idea/
 
 # test output
-test/
+mock_drive/
 
 # Local drive path
 drive_path.txt
