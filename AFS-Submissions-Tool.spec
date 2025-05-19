@@ -2,15 +2,15 @@
 
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    ['app/main.py'],
+    pathex=['app'],
     binaries=[],
     datas=[
         ('data/uploads/*', 'data/uploads'),
         ('data/fonts/*', 'data/fonts'),
         ('data/data/*', 'data/data'),
         ('assets/*', 'assets'),
-        ('version.txt', '.')
+        ('info/*', 'info')
     ],    
     hiddenimports=[],
     hookspath=[],

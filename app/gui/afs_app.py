@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinterdnd2 import TkinterDnD
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 
@@ -8,12 +7,15 @@ import shutil
 import threading
 import zipfile
 
-# Import relevant modules
+# Import relevant business logic modules
 from modules.process_submission import process_submission, prepare_submission
 from modules.afs_parser import is_likely_application
-from modules.resource_path import resource_path
 from modules.user_data import get_user_data_path
 from modules.get_version import get_version
+from modules.resource_path import resource_path
+
+# Import client modules
+import gui.gui_components as gui
 
 # --- Global constants ---
 UPLOAD_DIR = resource_path("data/uploads")
@@ -47,13 +49,7 @@ class AFSApp:
         self.max_visible_rows = 5
 
         # --- UI Elements ---
-        self.title_label = tk.Label(
-            root, 
-            text="Upload AFS Application", 
-            font=("Segoe UI", 18, "bold"), 
-            bg=BG_COLOR
-        )
-        self.title_label.pack(pady=(30, 20))
+        self.title_label = gui.create_title_label(self)
 
         self.change_drive_btn = tk.Button(
             root,
@@ -242,7 +238,7 @@ class AFSApp:
 
     def clean_uploads_folder(self):
         files_to_delete =[
-            f for f in os.listdir(UPLOAD_DIR) if f != "unzipped"
+            f for f in os.listdir(UPLOAD_DIR) if f != "keep.txt"
         ]
 
         if not files_to_delete:
