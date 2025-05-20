@@ -163,3 +163,6 @@ drive_path.txt
 # binary executables
 *.exe
 releases/
+
+# Vscode settings
+.vscode/

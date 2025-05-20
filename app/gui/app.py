@@ -14,8 +14,13 @@ from modules.user_data import get_user_data_path
 from modules.get_version import get_version
 from modules.resource_path import resource_path
 
-# Import client modules
-import gui.gui_components as gui
+# Import client gui component modules
+from gui.gui_components.title import create_title_label
+from gui.gui_components.drive_widgets import create_change_drive_btn, create_drive_label
+from gui.gui_components.file_selection import create_drop_frame, create_upload_btn
+
+# Import client gui utility modules
+from gui.gui_utils.drive_path import load_drive_path
 
 # --- Global constants ---
 UPLOAD_DIR = resource_path("data/uploads")
@@ -23,7 +28,7 @@ VERSION = get_version()
 BG_COLOR = "#f7f7f7"
 DND_BG_COLOR = "#f0f0f0"
 
-# Create upload and unzipped dirs if they don't exist
+# Create upload dir if it doesn't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # --- Main application ---
@@ -32,9 +37,14 @@ class AFSApp:
         self.root = root
         self.root.title("AFS Submission Tool")
         self.root.geometry("800x800")
+
+        self.upload_dir = UPLOAD_DIR
+        self.version = VERSION
+        self.bg_color = BG_COLOR
+        self.dnd_bg_color = DND_BG_COLOR
         self.root.configure(bg=BG_COLOR)
 
-        self.drive = self.load_drive_path()
+        self.drive = load_drive_path(self)
         self.uploaded_files = []
         self.selected_application_file = None
         self.afs_data = None
@@ -49,7 +59,14 @@ class AFSApp:
         self.max_visible_rows = 5
 
         # --- UI Elements ---
-        self.title_label = gui.create_title_label(self)
+        self.title_label = tk.Label(
+            root, 
+            text="Upload AFS Application", 
+            font=("Segoe UI", 18, "bold"), 
+            bg=BG_COLOR
+        )
+        self.title_label.pack(pady=(30, 20))
+        # self.title_label = create_title_label(self)
 
         self.change_drive_btn = tk.Button(
             root,
@@ -61,6 +78,7 @@ class AFSApp:
             width=20
         )
         self.change_drive_btn.pack(pady=(0, 10))
+        # self.change_drive_btn = create_change_drive_btn(self)
 
         self.drive_label = tk.Label(
             root,
@@ -74,6 +92,7 @@ class AFSApp:
             self.drive_label.config(text=f"Drive: {self.drive}")
         else:
             self.drive_label.config(text="Drive: (not selected)")
+        # self.drive_label = create_drive_label(self)
 
         self.drop_frame = tk.Frame(
             root,
@@ -148,6 +167,8 @@ class AFSApp:
             height=2
         )
         self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
+        # self.drop_frame, self.scroll_canvas, self.scroll_frame, self.scrollbar = create_drop_frame(self)
+        # self.upload_btn = create_upload_btn(self)
 
         # --- Spinner setup ---
         self.spinner_frames = []
