@@ -1,6 +1,6 @@
 import pdfrw
 from pdfrw.objects.pdfstring import PdfString
-from modules.resource_path import resource_path
+from models.resource_path import resource_path
 import fitz
 import os
 

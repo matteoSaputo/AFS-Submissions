@@ -5,7 +5,7 @@ import fitz
 import os
 import sys
 import contextlib
-from modules.resource_path import resource_path
+from models.resource_path import resource_path
 
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"

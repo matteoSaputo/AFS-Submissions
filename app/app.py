@@ -8,19 +8,11 @@ import threading
 import zipfile
 
 # Import relevant business logic modules
-from modules.process_submission import process_submission, prepare_submission
-from modules.afs_parser import is_likely_application
-from modules.user_data import get_user_data_path
-from modules.get_version import get_version
-from modules.resource_path import resource_path
-
-# Import client gui component modules
-from gui.gui_components.title import create_title_label
-from gui.gui_components.drive_widgets import create_change_drive_btn, create_drive_label
-from gui.gui_components.file_selection import create_drop_frame, create_upload_btn
-
-# Import client gui utility modules
-from gui.gui_utils.drive_path import load_drive_path
+from models.process_submission import process_submission, prepare_submission
+from models.afs_parser import is_likely_application
+from models.user_data import get_user_data_path
+from models.get_version import get_version
+from models.resource_path import resource_path
 
 # --- Global constants ---
 UPLOAD_DIR = resource_path("data/uploads")
@@ -44,7 +36,7 @@ class AFSApp:
         self.dnd_bg_color = DND_BG_COLOR
         self.root.configure(bg=BG_COLOR)
 
-        self.drive = load_drive_path(self)
+        self.drive = self.load_drive_path()
         self.uploaded_files = []
         self.selected_application_file = None
         self.afs_data = None
