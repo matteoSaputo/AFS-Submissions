@@ -3,14 +3,15 @@ import re
 import random
 import fitz
 import os
-
-from modules.resource_path import resource_path
+import sys
+import contextlib
+from models.resource_path import resource_path
 
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"
 ]
 SECTION_HEADINGS = [
-    "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION", "ATTACH", "By signing below",
+    "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
 ]
 
 def normalize_field_name(field):
@@ -18,7 +19,10 @@ def normalize_field_name(field):
     spaced = re.sub(r'(?<=[a-zA-Z])(?=[A-Z])', ' ', field)
     return spaced.strip().title()
 
-def overlay_afs_fields(input_path, output_path, afs_data):
+def overlay_afs_fields(input_path, output_path, missing_data):
+    if not missing_data:
+        return None
+
     doc = fitz.open(input_path)
     page = doc[0]  # Assuming all data is on page 1
 
@@ -30,13 +34,13 @@ def overlay_afs_fields(input_path, output_path, afs_data):
     }
 
     # Load the custom Lucida Console font
-    font_path = resource_path("../data/fonts/LUCON.TTF")
+    font_path = resource_path("data/fonts/LUCON.TTF")
 
     # Font settings
     font_size = 9
     font_color = (0, 0, 0)  # Black
 
-    for field, value in afs_data.items():
+    for field, value in missing_data.items():
         if field in field_coords and value.strip():
             x, y = field_coords[field]
             # Use insert_textbox to allow font embedding
@@ -52,6 +56,7 @@ def overlay_afs_fields(input_path, output_path, afs_data):
             )
 
     doc.save(output_path)
+    return output_path
 
 def truncate_name_at_word(name, limit=40):
     if len(name) <= limit:
@@ -90,8 +95,39 @@ def extract_special_field_from_lines(lines, target_field="*Date:", field_name="D
             break
     return field_name, "Not Found"
 
+def is_likely_application(file_path):
+    @contextlib.contextmanager
+    def suppress_stdout_stderr():
+        with open(os.devnull, 'w') as fnull:
+            old_stdout = sys.stdout
+            old_stderr = sys.stderr
+            sys.stdout = fnull
+            sys.stderr = fnull
+            try:
+                yield
+            finally:
+                sys.stdout = old_stdout
+                sys.stderr = old_stderr
+                
+    try:
+        with suppress_stdout_stderr():    
+            with pdfplumber.open(file_path) as pdf:
+                page = pdf.pages[0]
+                text = page.extract_text()
+                if not text:
+                    return False
+                for header in SECTION_HEADINGS:
+                    if header not in text:
+                        return False
+                return True
+    except Exception:
+        return False
+
 def extract_afs_data(pdf_path):
     """Main function to extract cleaned AFS application data from a PDF."""
+    if not is_likely_application(pdf_path):
+        return None
+    
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
         for page in pdf.pages:
@@ -145,8 +181,8 @@ def extract_afs_data(pdf_path):
 
     # Generate missing values
     temp_path = resource_path("temp_overlay.pdf")
-    overlay_afs_fields(pdf_path, temp_path, missing_values)
-    os.replace(temp_path, pdf_path)
+    if overlay_afs_fields(pdf_path, temp_path, missing_values):
+        os.replace(temp_path, pdf_path)
 
     # Special fix for "Date"
     lines = full_text.splitlines()

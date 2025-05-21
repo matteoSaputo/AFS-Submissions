@@ -54,7 +54,7 @@ if !LATEST_MAJOR! neq 0 (
 :: Build final version string
 set VERSION=%MAJOR%.%MINOR%
 
-echo %VERSION% > version.txt
+echo %VERSION% > info/version.txt
 timeout /t 1 > nul
 echo New version: v%VERSION%
 
