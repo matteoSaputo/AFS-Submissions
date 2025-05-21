@@ -1,5 +1,5 @@
 from tkinterdnd2 import TkinterDnD
-from app.app import AFSApp
+from app import AFSApp
 
 # --- Start app ---
 if __name__ == "__main__":

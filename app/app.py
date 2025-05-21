@@ -292,10 +292,13 @@ class AFSApp:
             btn = tk.Button(row, 
                 text="❌", 
                 command=lambda f=file: self.delete_uploaded_file(f),
-                bg="#eb4034",
-                fg="white",
+                bg=DND_BG_COLOR,
+                fg="black",
                 padx=6
             )
+
+            if file == self.selected_application_file:
+                label.config(bg='#bfbfbf')
 
             btn.pack(side="right", padx=5)
         
