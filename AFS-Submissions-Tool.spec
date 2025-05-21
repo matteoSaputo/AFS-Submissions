@@ -2,8 +2,8 @@
 
 
 a = Analysis(
-    ['app/main.py'],
-    pathex=['app'],
+    ['src/main.py'],
+    pathex=['.', 'src'],
     binaries=[],
     datas=[
         ('data/uploads/*', 'data/uploads'),
