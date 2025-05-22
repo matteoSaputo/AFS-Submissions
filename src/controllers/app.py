@@ -9,13 +9,6 @@ import zipfile
 
 from models.processor import FileProcessor
 
-# Import relevant business logic modules
-# from models.process_submission import process_submission, prepare_submission
-# from models.afs_parser import is_likely_application
-# from models.user_data import get_user_data_path
-# from models.get_version import get_version
-# from models.resource_path import resource_path
-
 # --- Global constants ---
 UPLOAD_DIR = "data/uploads"
 BG_COLOR = "#f7f7f7"
