@@ -99,11 +99,11 @@ def fill_nrs(afs_data, output_path):
     # Generate scripted signature
     insert_script_signature(
         output_path, 
-        "temp.pdf", 
+        resource_path("temp.pdf"), 
         afs_data["Primary Owner Name"], 
         { "rect": (120, 705, 300, 805) }
     )
-    os.replace("temp.pdf", output_path)
+    os.replace(resource_path("temp.pdf"), output_path)
 
     print("Filled NRS Application saved to:", output_path)
     return output_path

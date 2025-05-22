@@ -237,7 +237,7 @@ class AFSApp:
         self.clear_files_btn.pack(side="bottom", pady=10)
 
     def upload_pdf(self):
-        file_paths = filedialog.askopenfilenames()
+        file_paths = list(filedialog.askopenfilenames())
         if not file_paths:
             return
         self.handle_files(file_paths)
