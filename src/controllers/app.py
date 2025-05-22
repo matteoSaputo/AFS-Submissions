@@ -7,21 +7,19 @@ import shutil
 import threading
 import zipfile
 
+from models.processor import FileProcessor
+
 # Import relevant business logic modules
-from models.process_submission import process_submission, prepare_submission
-from models.afs_parser import is_likely_application
-from models.user_data import get_user_data_path
-from models.get_version import get_version
-from models.resource_path import resource_path
+# from models.process_submission import process_submission, prepare_submission
+# from models.afs_parser import is_likely_application
+# from models.user_data import get_user_data_path
+# from models.get_version import get_version
+# from models.resource_path import resource_path
 
 # --- Global constants ---
-UPLOAD_DIR = resource_path("data/uploads")
-VERSION = get_version()
+UPLOAD_DIR = "data/uploads"
 BG_COLOR = "#f7f7f7"
 DND_BG_COLOR = "#f0f0f0"
-
-# Create upload dir if it doesn't exist
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # --- Main application ---
 class AFSApp:
@@ -30,8 +28,13 @@ class AFSApp:
         self.root.title("AFS Submission Tool")
         self.root.geometry("800x800")
 
-        self.upload_dir = UPLOAD_DIR
-        self.version = VERSION
+        self.file_processor = FileProcessor(UPLOAD_DIR)
+
+        self.upload_dir = self.file_processor.upload_dir
+        # Create upload dir if it doesn't exist
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+        self.version = self.file_processor.get_version()
         self.bg_color = BG_COLOR
         self.dnd_bg_color = DND_BG_COLOR
         self.root.configure(bg=BG_COLOR)
@@ -164,7 +167,7 @@ class AFSApp:
 
         # --- Spinner setup ---
         self.spinner_frames = []
-        spinner_path = resource_path("assets/spinner.gif")
+        spinner_path = self.file_processor.resource_path("assets/spinner.gif")
         img = Image.open(spinner_path)
 
         # Create a Canvas (instead of Label) for the spinner
@@ -217,7 +220,7 @@ class AFSApp:
 
         self.version_label = tk.Label(
             root,
-            text=f"Version: {VERSION}",
+            text=f"Version: {self.version}",
             font=("Segoe UI", 10),
             bg=BG_COLOR,
             fg="gray"
@@ -251,14 +254,14 @@ class AFSApp:
 
     def clean_uploads_folder(self):
         files_to_delete =[
-            f for f in os.listdir(UPLOAD_DIR) if f != "keep.txt"
+            f for f in os.listdir(self.upload_dir) if f != "keep.txt"
         ]
 
         if not files_to_delete:
             return
         
         for file in files_to_delete:
-            file_path = os.path.join(UPLOAD_DIR, file)
+            file_path = os.path.join(self.upload_dir, file)
             try:
                 if os.path.isfile(file_path) or os.path.islink(file_path):
                     os.unlink(file_path)
@@ -357,7 +360,7 @@ class AFSApp:
 
             likely_application = ""
             for file in extracted_files:
-                if is_likely_application(file):
+                if self.file_processor.is_likely_application(file):
                     likely_application = file
                     
             if likely_application:
@@ -366,7 +369,7 @@ class AFSApp:
 
             for file in extracted_files:
                 filename = os.path.basename(file)
-                dest_path = os.path.join(UPLOAD_DIR, filename)
+                dest_path = os.path.join(self.upload_dir, filename)
                 if not os.path.exists(dest_path):
                     shutil.copy(file, dest_path)
                 if filename == os.path.basename(likely_application):
@@ -385,7 +388,7 @@ class AFSApp:
 
     def start_submission(self, upload_path):
         try:
-            self.afs_data, self.bus_name, self.matched_folder, self.match_score = prepare_submission(upload_path, self.drive)
+            self.afs_data, self.bus_name, self.matched_folder, self.match_score = self.file_processor.prepare_submission(upload_path, self.drive)
 
             if self.matched_folder:
                 self.match_label.config(
@@ -416,7 +419,7 @@ class AFSApp:
             else:
                 self.customer_folder = os.path.join(self.drive, self.bus_name)
             
-            process_submission(
+            self.file_processor.process_submission(
                 self.selected_application_file, 
                 self.uploaded_files,
                 self.afs_data, 
@@ -489,7 +492,7 @@ class AFSApp:
         self.root.update()
 
     def load_drive_path(self):
-        drive_path_file = get_user_data_path("drive_path.txt")   
+        drive_path_file = self.file_processor.get_user_data_path("drive_path.txt")   
 
         if os.path.exists(drive_path_file):
             with open(drive_path_file, "r") as f:
@@ -515,7 +518,7 @@ class AFSApp:
 
     def change_drive_path(self):
         drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
-        drive_path_file = get_user_data_path("drive_path.txt")   
+        drive_path_file = self.file_processor.get_user_data_path("drive_path.txt")   
 
         if drive_path:
             with open(drive_path_file, "w") as f:

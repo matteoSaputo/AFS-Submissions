@@ -1,10 +1,10 @@
-from models.afs_parser import extract_afs_data
-from models.fill_nrs import fill_nrs
-from models.redact_contact_info import redact_contact_info
-from models.find_matching_folder import find_matching_folder
-from models.generate_business_name import generate_business_name
-from models.resource_path import resource_path
-from models.migrate_to_drive import migrate_to_drive
+from models.utils.afs_parser import extract_afs_data
+from models.utils.fill_nrs import fill_nrs
+from models.utils.redact_contact_info import redact_contact_info
+from models.utils.find_matching_folder import find_matching_folder
+from models.utils.generate_business_name import generate_business_name
+from models.utils.resource_path import resource_path
+from models.utils.migrate_to_drive import migrate_to_drive
 
 import os
 import re
