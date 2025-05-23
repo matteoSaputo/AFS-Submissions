@@ -30,6 +30,7 @@ class AFSApp:
         self.version = self.file_processor.get_version()
         self.bg_color = BG_COLOR
         self.dnd_bg_color = DND_BG_COLOR
+        
         self.root.configure(bg=BG_COLOR)
 
         self.drive = self.load_drive_path()
@@ -54,7 +55,6 @@ class AFSApp:
             bg=BG_COLOR
         )
         self.title_label.pack(pady=(30, 20))
-        # self.title_label = create_title_label(self)
 
         self.change_drive_btn = tk.Button(
             root,
@@ -66,7 +66,6 @@ class AFSApp:
             width=20
         )
         self.change_drive_btn.pack(pady=(0, 10))
-        # self.change_drive_btn = create_change_drive_btn(self)
 
         self.drive_label = tk.Label(
             root,
@@ -80,7 +79,6 @@ class AFSApp:
             self.drive_label.config(text=f"Drive: {self.drive}")
         else:
             self.drive_label.config(text="Drive: (not selected)")
-        # self.drive_label = create_drive_label(self)
 
         self.drop_frame = tk.Frame(
             root,
@@ -155,8 +153,6 @@ class AFSApp:
             height=2
         )
         self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
-        # self.drop_frame, self.scroll_canvas, self.scroll_frame, self.scrollbar = create_drop_frame(self)
-        # self.upload_btn = create_upload_btn(self)
 
         # --- Spinner setup ---
         self.spinner_frames = []
