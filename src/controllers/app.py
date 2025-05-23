@@ -7,7 +7,7 @@ import shutil
 import threading
 import zipfile
 
-from models.processor import FileProcessor
+from models.file_processor import FileProcessor
 
 # --- Global constants ---
 UPLOAD_DIR = "data/uploads"

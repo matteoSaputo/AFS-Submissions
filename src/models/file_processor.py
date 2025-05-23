@@ -1,3 +1,5 @@
+import os
+
 # Import relevant business logic modules
 from models.utils.process_submission import process_submission as process_submission_util, prepare_submission as prepare_submission_util
 from models.utils.afs_parser import is_likely_application as is_likely_application_util
@@ -8,6 +10,10 @@ from models.utils.resource_path import resource_path as resource_path_util
 class FileProcessor:
     def __init__(self, upload_dir):
         self.upload_dir = self.resource_path(upload_dir)
+        
+        # Create upload dir if it doesn't exist
+        os.makedirs(self.upload_dir, exist_ok=True)
+
 
     def process_submission(self, upload_path, attatchements, afs_data, bus_name, customer_folder):
         return process_submission_util(
