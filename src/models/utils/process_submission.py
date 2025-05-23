@@ -5,6 +5,7 @@ from models.utils.find_matching_folder import find_matching_folder
 from models.utils.generate_business_name import generate_business_name
 from models.utils.resource_path import resource_path
 from models.utils.migrate_to_drive import migrate_to_drive
+from models.utils.flatten_pdf import flatten_pdf
 
 import os
 import re
@@ -49,7 +50,7 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
 
     # Rename afs app with business name
     if not os.path.exists(business_application):
-        os.rename(upload_path, business_application)
+        flatten_pdf(upload_path, business_application)
     attatchements.append(business_application)
 
     # Create the customer folder if it doesn't exist
