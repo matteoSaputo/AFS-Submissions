@@ -1,12 +1,12 @@
-from tkinterdnd2 import TkinterDnD
-from controllers.app import AFSApp
+from tkinterdnd2 import TkinterDnD as tk
+from controllers.app import App
 
 # --- Start app ---
 def main():
-    root = TkinterDnD.Tk()    
-    app = AFSApp(root)
+    root = tk.Tk()    
+    app = App(root)
     root.mainloop()
-    app.clean_uploads_folder()
+    app.main_frame.submissions_controller.clean_uploads_folder()
 
 if __name__ == "__main__":
     main()

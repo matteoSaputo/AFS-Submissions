@@ -7,7 +7,7 @@ from models.utils.user_data import get_user_data_path as get_user_data_path_util
 from models.utils.get_version import get_version as get_version_util
 from models.utils.resource_path import resource_path as resource_path_util
 
-class FileProcessor:
+class SubmissionsModel:
     def __init__(self, upload_dir):
         self.upload_dir = self.resource_path(upload_dir)
         
