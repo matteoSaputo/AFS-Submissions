@@ -12,7 +12,7 @@ class MainFrame(tk.Frame):
         self.root.title("AFS Submission Tool")
         self.root.geometry("800x800")
 
-        self.configure(bg=self.bg_color)
+        self.configure(bg=BG_COLOR)
 
         self.submissions_controller = SubmissionsController(root, BG_COLOR, DND_BG_COLOR)
         self.submissions_view = self.submissions_controller.view
@@ -23,7 +23,7 @@ class MainFrame(tk.Frame):
         self.place(relheight=1.0, relwidth=1.0)
 
     def display_submissions_view(self):
-        self.current_view.pack_forget()
-        self.submissions_view.pack()
+        self.current_view.place_forget()
+        self.submissions_view.place(relheight=1.0, relwidth=1.0)
         self.current_view = self.submissions_view
         

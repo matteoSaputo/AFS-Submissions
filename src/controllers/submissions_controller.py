@@ -1,11 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
 
 import os
 import shutil
 import threading
-import zipfile
 
 from models.submissions_model import SubmissionsModel
 from views.submissions_view import SubmissionsView
@@ -19,7 +17,6 @@ class SubmissionsController:
         self.root = root
 
         self.model = SubmissionsModel(UPLOAD_DIR)
-        self.view = SubmissionsView(self, root)
 
         self.upload_dir = self.model.upload_dir  
         # Create upload dir if it doesn't exist
@@ -44,6 +41,8 @@ class SubmissionsController:
 
         self.max_visible_rows = 5
 
+        self.view = SubmissionsView(self, root)
+
     def upload_pdf(self):
         file_paths = list(filedialog.askopenfilenames())
         if not file_paths:
@@ -56,24 +55,6 @@ class SubmissionsController:
         pdf_files = [os.path.abspath(f.strip('{}')) for f in dropped_files]
         self.handle_files(pdf_files)
         self.view.drop_frame.config(bg=self.dnd_bg_color)
-
-    def clean_uploads_folder(self):
-        files_to_delete =[
-            f for f in os.listdir(self.upload_dir) if f != "keep.txt"
-        ]
-
-        if not files_to_delete:
-            return
-        
-        for file in files_to_delete:
-            file_path = os.path.join(self.upload_dir, file)
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-            except Exception as e:
-                print(f"Failed to delete {file_path}. {e}")
 
     def update_file_display(self):
         def limit_file_name(file, limit=50):
@@ -99,7 +80,7 @@ class SubmissionsController:
 
             btn = tk.Button(row, 
                 text="❌", 
-                command=lambda f=file: self.delete_uploaded_file(f),
+                command=lambda f=file: self.delete_file(f),
                 bg=self.dnd_bg_color,
                 fg="black",
                 padx=6
@@ -124,7 +105,7 @@ class SubmissionsController:
                 make_scrollable_for_file_list(w)
         make_scrollable_for_file_list(self.view.drop_frame)        
 
-    def delete_uploaded_file(self, file_path):
+    def delete_file(self, file_path):
         try:
             if os.path.exists(file_path):
                 os.remove(file_path)
@@ -134,22 +115,10 @@ class SubmissionsController:
         
         if file_path == self.selected_application_file:
             self.selected_application_file = None
-            self.clean_uploads_folder()
+            self.model.clean_uploads_folder()
             self.reset_folder_UI()
         
         self.update_file_display()
-
-    def extract_zip(self, zip_path):
-        extracted = []
-        try:
-            with zipfile.ZipFile(zip_path, 'r') as zip:
-                zip.extractall(os.path.dirname(zip_path))
-                for name in zip.namelist():
-                    extracted_path = os.path.join(os.path.dirname(zip_path), name)
-                    extracted.append(extracted_path)
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to extract {os.path.basename(zip_path)}")
-        return extracted
 
     def handle_files(self, file_list):
         self.show_spinner()
@@ -159,7 +128,7 @@ class SubmissionsController:
 
             for original_path in file_list:
                 if original_path.lower().endswith(".zip"):
-                    file_list.extend(self.extract_zip(original_path))
+                    file_list.extend(self.model.extract_zip(original_path))
                     continue
                 extracted_files.append(original_path)
 
@@ -169,7 +138,7 @@ class SubmissionsController:
                     likely_application = file
                     
             if likely_application:
-                self.clean_uploads_folder()
+                self.model.clean_uploads_folder()
                 self.reset_folder_UI()
 
             for file in extracted_files:
@@ -263,7 +232,6 @@ class SubmissionsController:
             self.view.scrollbar.place(relx=0.92, rely=0.02, relheight=relheight)
         else:
             self.view.scrollbar.place_forget()
-
 
     def hide_file_list_frame(self):    
         self.view.upload_btn.place(relx=0.5, rely=0.5, anchor="center")

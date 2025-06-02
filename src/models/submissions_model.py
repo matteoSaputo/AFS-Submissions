@@ -6,6 +6,8 @@ from models.utils.afs_parser import is_likely_application as is_likely_applicati
 from models.utils.user_data import get_user_data_path as get_user_data_path_util
 from models.utils.get_version import get_version as get_version_util
 from models.utils.resource_path import resource_path as resource_path_util
+from models.utils.extract_zip import extract_zip as extract_zip_util
+from models.utils.clean_uploads_folder import clean_uploads_folder as clean_uploads_folder_util
 
 class SubmissionsModel:
     def __init__(self, upload_dir):
@@ -38,4 +40,10 @@ class SubmissionsModel:
     
     def resource_path(self, relative_path):
         return resource_path_util(relative_path)
+    
+    def extract_zip(self, zip_path):
+        return extract_zip_util(zip_path)
+    
+    def clean_uploads_folder(self):
+        return clean_uploads_folder_util(self.upload_dir)
 
