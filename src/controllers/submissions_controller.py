@@ -18,13 +18,14 @@ class SubmissionsController:
     def __init__(self, root, BG_COLOR, DND_BG_COLOR):
         self.root = root
 
-        self.file_processor = SubmissionsModel(UPLOAD_DIR)
+        self.model = SubmissionsModel(UPLOAD_DIR)
+        self.view = SubmissionsView(self, root)
 
-        self.upload_dir = self.file_processor.upload_dir  
+        self.upload_dir = self.model.upload_dir  
         # Create upload dir if it doesn't exist
         os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-        self.version = self.file_processor.get_version()
+        self.version = self.model.get_version()
         self.bg_color = BG_COLOR
         self.dnd_bg_color = DND_BG_COLOR
 
@@ -39,11 +40,9 @@ class SubmissionsController:
 
         self.spinner_running = False
         self.spinner_frame = 0
-        self.spinner_path = self.file_processor.resource_path("assets/spinner.gif")
+        self.spinner_path = self.model.resource_path("assets/spinner.gif")
 
         self.max_visible_rows = 5
-
-        self.view = SubmissionsView(self, root)
 
     def upload_pdf(self):
         file_paths = list(filedialog.askopenfilenames())
@@ -166,7 +165,7 @@ class SubmissionsController:
 
             likely_application = ""
             for file in extracted_files:
-                if self.file_processor.is_likely_application(file):
+                if self.model.is_likely_application(file):
                     likely_application = file
                     
             if likely_application:
@@ -194,7 +193,7 @@ class SubmissionsController:
 
     def start_submission(self, upload_path):
         try:
-            self.afs_data, self.bus_name, self.matched_folder, self.match_score = self.file_processor.prepare_submission(upload_path, self.drive)
+            self.afs_data, self.bus_name, self.matched_folder, self.match_score = self.model.prepare_submission(upload_path, self.drive)
 
             if self.matched_folder:
                 self.view.match_label.config(
@@ -225,7 +224,7 @@ class SubmissionsController:
             else:
                 self.customer_folder = os.path.join(self.drive, self.bus_name)
             
-            self.file_processor.process_submission(
+            self.model.process_submission(
                 self.selected_application_file, 
                 self.uploaded_files,
                 self.afs_data, 
@@ -298,7 +297,7 @@ class SubmissionsController:
         self.root.update()
 
     def load_drive_path(self):
-        drive_path_file = self.file_processor.get_user_data_path("drive_path.txt")   
+        drive_path_file = self.model.get_user_data_path("drive_path.txt")   
 
         if os.path.exists(drive_path_file):
             with open(drive_path_file, "r") as f:
@@ -324,7 +323,7 @@ class SubmissionsController:
 
     def change_drive_path(self):
         drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
-        drive_path_file = self.file_processor.get_user_data_path("drive_path.txt")   
+        drive_path_file = self.model.get_user_data_path("drive_path.txt")   
 
         if drive_path:
             with open(drive_path_file, "w") as f:
