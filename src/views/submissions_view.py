@@ -9,9 +9,12 @@ class SubmissionsView(tk.Frame):
         self.controller = controller
         self.bg_color = controller.bg_color
         self.dnd_bg_color = controller.dnd_bg_color
-        self.spinner_path = controller.spinner_path
         self.version = controller.version
         self.drive = controller.drive
+
+        self.spinner_running = False
+        self.spinner_frame = 0
+        self.spinner_path = self.controller.model.resource_path("assets/spinner.gif")
 
         # --- UI Elements ---
         self.title_label = tk.Label(
@@ -102,7 +105,7 @@ class SubmissionsView(tk.Frame):
         self.spinner_frames = []
         img = Image.open(self.spinner_path)
 
-        # Create a Canvas (instead of Label) for the spinner
+        # Create a Canvas for the spinner
         self.spinner_canvas = tk.Canvas(self, width=100, height=100, highlightthickness=0, bg=self.bg_color)
         self.spinner_canvas_image = None
 

@@ -36,10 +36,6 @@ class SubmissionsController:
         self.matched_folder = None
         self.match_score = None
 
-        self.spinner_running = False
-        self.spinner_frame = 0
-        self.spinner_path = self.model.resource_path("assets/spinner.gif")
-
         self.max_visible_rows = 5
 
         self.view = SubmissionsView(self, root)
@@ -240,29 +236,29 @@ class SubmissionsController:
         self.view.scrollbar.place_forget()
 
     def animate_spinner(self):
-        if not self.spinner_running:
+        if not self.view.spinner_running:
             return
 
-        frame = self.view.spinner_frames[self.spinner_frame]
+        frame = self.view.spinner_frames[self.view.spinner_frame]
 
         if self.view.spinner_canvas_image is None:
             self.view.spinner_canvas_image = self.view.spinner_canvas.create_image(50, 50, image=frame)
         else:
             self.view.spinner_canvas.itemconfig(self.view.spinner_canvas_image, image=frame)
 
-        self.spinner_frame = (self.spinner_frame + 1) % len(self.view.spinner_frames)
+        self.view.spinner_frame = (self.view.spinner_frame + 1) % len(self.view.spinner_frames)
         self.root.after(100, self.animate_spinner)
 
     def show_spinner(self):
         self.view.spinner_canvas.place(relx=0.5, rely=0.8, anchor="center")
-        if not self.spinner_running:
-            self.spinner_running = True
+        if not self.view.spinner_running:
+            self.view.spinner_running = True
             self.animate_spinner()
         self.root.update()
     
     def hide_spinner(self):
         self.view.spinner_canvas.place_forget()
-        self.spinner_running = False
+        self.view.spinner_running = False
         self.root.update()
 
     def load_drive_path(self):
