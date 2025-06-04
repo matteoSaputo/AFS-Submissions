@@ -1,5 +1,5 @@
 import os
-from models.utils.resource_path import resource_path
+from models.submissions.utils.resource_path import resource_path
 
 def get_version():
     version_file = resource_path("info/version.txt")

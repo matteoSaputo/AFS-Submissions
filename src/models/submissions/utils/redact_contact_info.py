@@ -1,7 +1,7 @@
 import fitz  # PyMuPDF
 import re
 import os
-from models.utils.resource_path import resource_path
+from models.submissions.utils.resource_path import resource_path
 
 def redact_contact_info(input_path, output_path):
     if os.path.exists(output_path):
