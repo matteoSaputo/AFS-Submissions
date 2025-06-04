@@ -142,7 +142,7 @@ class SubmissionsController:
                 filename = os.path.basename(file)
                 dest_path = os.path.join(self.upload_dir, filename)
                 if not os.path.exists(dest_path):
-                    shutil.move(file, dest_path)
+                    shutil.copy(file, dest_path)
                 if filename == os.path.basename(likely_application):
                     self.selected_application_file = dest_path
                 self.uploaded_files.append(dest_path)
