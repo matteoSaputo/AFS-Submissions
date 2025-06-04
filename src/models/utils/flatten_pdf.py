@@ -16,5 +16,7 @@ def flatten_pdf(input_path, output_path):
 
     new_doc.save(resource_path("temp.pdf"))
     os.rename(resource_path("temp.pdf"), output_path)
-    new_doc.close()
+    print(f"Flattened Business App saved to: {output_path}")
+    new_doc.close()  
     doc.close()
+    os.remove(input_path)

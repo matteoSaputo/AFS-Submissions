@@ -15,12 +15,12 @@ def prepare_submission(afs_path, drive):
 
     # Create a cleaned business name
     if not afs_data.get("Business Legal Name") and afs_data.get("DBA"):
-        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
     else:
-        bus_name = re.sub(r'[\\/*?:."<>|]', "_", afs_data["Business Legal Name"])
+        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["Business Legal Name"])
 
     if afs_data.get("DBA"):
-        dba = re.sub(r'[\\/*?:."<>|]', "_", afs_data["DBA"])
+        dba = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
         bus_name = generate_business_name(bus_name, dba)
 
     # Suggest a folder match but don't make it yet
@@ -51,6 +51,7 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
     # Rename afs app with business name
     if not os.path.exists(business_application):
         flatten_pdf(upload_path, business_application)
+    attatchements.remove(upload_path)
     attatchements.append(business_application)
 
     # Create the customer folder if it doesn't exist

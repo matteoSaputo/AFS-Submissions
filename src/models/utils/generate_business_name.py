@@ -7,8 +7,8 @@ def generate_business_name(legal_name, dba_name, threshold=85):
     only appending DBA if it's sufficiently different from legal name.
     """
     # Sanitize both names
-    legal_clean = re.sub(r'[\\/*?:."<>|]', "_", legal_name.strip())
-    dba_clean = re.sub(r'[\\/*?:."<>|]', "_", dba_name.strip()) if dba_name else ""
+    legal_clean = re.sub(r'[\\/*?:."<>|]', "", legal_name.strip())
+    dba_clean = re.sub(r'[\\/*?:."<>|]', "", dba_name.strip()) if dba_name else ""
 
     # Compare similarity
     if dba_clean:
