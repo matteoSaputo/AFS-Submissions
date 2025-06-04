@@ -1,7 +1,7 @@
 import fitz  # PyMuPDF
 import os
 
-from models.utils.resource_path import resource_path
+from models.submissions.utils.resource_path import resource_path
 
 def flatten_pdf(input_path, output_path):
     doc = fitz.open(input_path)

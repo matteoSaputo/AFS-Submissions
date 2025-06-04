@@ -1,11 +1,11 @@
-from models.utils.afs_parser import extract_afs_data
-from models.utils.fill_nrs import fill_nrs
-from models.utils.redact_contact_info import redact_contact_info
-from models.utils.find_matching_folder import find_matching_folder
-from models.utils.generate_business_name import generate_business_name
-from models.utils.resource_path import resource_path
-from models.utils.migrate_to_drive import migrate_to_drive
-from models.utils.flatten_pdf import flatten_pdf
+from models.submissions.utils.afs_parser import extract_afs_data
+from models.submissions.utils.fill_nrs import fill_nrs
+from models.submissions.utils.redact_contact_info import redact_contact_info
+from models.submissions.utils.find_matching_folder import find_matching_folder
+from models.submissions.utils.generate_business_name import generate_business_name
+from models.submissions.utils.resource_path import resource_path
+from models.submissions.utils.migrate_to_drive import migrate_to_drive
+from models.submissions.utils.flatten_pdf import flatten_pdf
 
 import os
 import re

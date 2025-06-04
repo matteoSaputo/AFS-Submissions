@@ -6,8 +6,8 @@ import shutil
 import threading
 
 # Import model and view
-from models.submissions_model import SubmissionsModel
-from views.submissions_view import SubmissionsView
+from models.submissions.submissions_model import SubmissionsModel
+from views.submissions.submissions_view import SubmissionsView
 
 # --- Global constants ---
 UPLOAD_DIR = "data/uploads"

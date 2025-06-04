@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from controllers.submissions_controller import SubmissionsController
+from controllers.submissions.submissions_controller import SubmissionsController
 
 BG_COLOR = "#f7f7f7"
 DND_BG_COLOR = "#f0f0f0"

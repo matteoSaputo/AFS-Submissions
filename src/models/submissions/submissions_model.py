@@ -1,13 +1,13 @@
 import os
 
 # Import relevant business logic modules
-from models.utils.process_submission import process_submission as process_submission_util, prepare_submission as prepare_submission_util
-from models.utils.afs_parser import is_likely_application as is_likely_application_util
-from models.utils.user_data import get_user_data_path as get_user_data_path_util
-from models.utils.get_version import get_version as get_version_util
-from models.utils.resource_path import resource_path as resource_path_util
-from models.utils.extract_zip import extract_zip as extract_zip_util
-from models.utils.clean_uploads_folder import clean_uploads_folder as clean_uploads_folder_util
+from models.submissions.utils.process_submission import process_submission as process_submission_util, prepare_submission as prepare_submission_util
+from models.submissions.utils.afs_parser import is_likely_application as is_likely_application_util
+from models.submissions.utils.user_data import get_user_data_path as get_user_data_path_util
+from models.submissions.utils.get_version import get_version as get_version_util
+from models.submissions.utils.resource_path import resource_path as resource_path_util
+from models.submissions.utils.extract_zip import extract_zip as extract_zip_util
+from models.submissions.utils.clean_uploads_folder import clean_uploads_folder as clean_uploads_folder_util
 
 class SubmissionsModel:
     def __init__(self, upload_dir):
