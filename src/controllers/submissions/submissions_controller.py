@@ -28,8 +28,6 @@ class SubmissionsController:
 
         self.model.drive = self.load_drive_path()
 
-        self.max_visible_rows = 5
-
         self.view = SubmissionsView(self, self.model, root)
 
     def upload_pdf(self):
@@ -45,13 +43,13 @@ class SubmissionsController:
         self.handle_files(pdf_files)
         self.view.drop_frame.config(bg=self.dnd_bg_color)
 
-    def update_file_display(self):
-        def limit_file_name(file, limit=50):
-            name, extension = os.path.splitext(file)
-            if len(file) > limit:
-                return f"{name[:limit]}...{extension}"
-            return file
+    def limit_file_name(file, limit=50):
+        name, extension = os.path.splitext(file)
+        if len(file) > limit:
+            return f"{name[:limit]}...{extension}"
+        return file 
 
+    def update_file_display(self):
         for widget in self.view.scroll_frame.winfo_children():
             widget.destroy()
 
@@ -64,7 +62,7 @@ class SubmissionsController:
             row = tk.Frame(self.view.scroll_frame, bg=self.dnd_bg_color)
             row.pack(fill="x", padx=4, pady=2)
 
-            label = tk.Button(row, text=limit_file_name(os.path.basename(file)), bg=self.dnd_bg_color, anchor="w")
+            label = tk.Button(row, text=self.limit_file_name(os.path.basename(file)), bg=self.dnd_bg_color, anchor="w")
             label.pack(side="left", fill="x", expand=True)
 
             btn = tk.Button(row, 
@@ -80,20 +78,21 @@ class SubmissionsController:
 
             btn.pack(side="right", padx=5)
         
-        def make_scrollable_for_file_list(widget):
-            if not widget:
-                return
-            if not self.view.scrollbar.winfo_ismapped():
-                widget.unbind("<MouseWheel>")
-            else:
-                widget.bind(
-                    "<MouseWheel>",
-                    lambda event: self.view.scroll_canvas.yview_scroll(int(-1 * (event.delta/120)), "units") 
-                )
-            for w in widget.winfo_children():
-                make_scrollable_for_file_list(w)
-        make_scrollable_for_file_list(self.view.drop_frame)        
+        self.make_scrollable_for_file_list(self.view.drop_frame)        
 
+    def make_scrollable_for_file_list(self, widget):
+        if not widget:
+            return
+        if not self.view.scrollbar.winfo_ismapped():
+            widget.unbind("<MouseWheel>")
+        else:
+            widget.bind(
+                "<MouseWheel>",
+                lambda event: self.view.scroll_canvas.yview_scroll(int(-1 * (event.delta/120)), "units") 
+            )
+        for w in widget.winfo_children():
+            self.make_scrollable_for_file_list(w)
+        
     def delete_file(self, file_path):
         try:
             if os.path.exists(file_path):
@@ -145,13 +144,12 @@ class SubmissionsController:
                 self.hide_spinner()
                 return
             
-            self.start_submission(self.model.selected_application_file)
+            self.start_submission()
 
         threading.Thread(target=process).start()
 
-    def start_submission(self, upload_path):
+    def start_submission(self):
         try:
-            # self.model.afs_data, self.model.bus_name, self.model.matched_folder, self.model.match_score = 
             self.model.prepare_submission()
 
             if self.model.matched_folder:
@@ -204,15 +202,15 @@ class SubmissionsController:
     def show_file_list_frame(self):
         self.view.upload_btn.place_forget()
         row_height = 30
-        visible_rows = min(len(self.model.uploaded_files)+1, self.max_visible_rows)
+        visible_rows = min(len(self.model.uploaded_files)+1, self.view.max_visible_rows)
         actual_height = row_height * visible_rows
-        max_height = row_height * self.max_visible_rows
+        max_height = row_height * self.view.max_visible_rows
         relheight = actual_height / max_height - 0.02
 
         self.view.scroll_canvas.place(relx=0.02, rely=0.02, relwidth=0.9, relheight=relheight)
         self.view.scroll_frame.config(height=relheight)
         
-        if len(self.model.uploaded_files)-1 > self.max_visible_rows:
+        if len(self.model.uploaded_files)-1 > self.view.max_visible_rows:
             self.view.scrollbar.place(relx=0.92, rely=0.02, relheight=relheight)
         else:
             self.view.scrollbar.place_forget()

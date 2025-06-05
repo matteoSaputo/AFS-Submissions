@@ -8,14 +8,18 @@ class SubmissionsView(tk.Frame):
         self.root = root
         self.controller = controller
         self.model = model
+        
         self.bg_color = controller.bg_color
         self.dnd_bg_color = controller.dnd_bg_color
+        
         self.version = model.version
         self.drive = model.drive
 
         self.spinner_running = False
         self.spinner_frame = 0
         self.spinner_path = self.controller.model.resource_path("assets/spinner.gif")
+
+        self.max_visible_rows = 5
 
         # --- UI Elements ---
         self.title_label = tk.Label(
