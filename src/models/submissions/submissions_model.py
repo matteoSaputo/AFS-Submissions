@@ -12,22 +12,32 @@ from models.submissions.utils.clean_uploads_folder import clean_uploads_folder a
 class SubmissionsModel:
     def __init__(self, upload_dir):
         self.upload_dir = self.resource_path(upload_dir)
-        
+        self.version = self.get_version()
+        self.drive = None
+        self.uploaded_files = []
+        self.selected_application_file = None
+        self.afs_data = None
+        self.bus_name = None
+        self.customer_folder = None
+        self.matched_folder = None
+        self.match_score = None
+
         # Create upload dir if it doesn't exist
         os.makedirs(self.upload_dir, exist_ok=True)
 
 
-    def process_submission(self, upload_path, attatchements, afs_data, bus_name, customer_folder):
+    def process_submission(self):
         return process_submission_util(
-            upload_path,
-            attatchements,
-            afs_data,
-            bus_name,
-            customer_folder
+            self.selected_application_file,
+            self.uploaded_files,
+            self.afs_data,
+            self.bus_name,
+            self.customer_folder
         )
     
-    def prepare_submission(self, afs_path, drive):
-        return prepare_submission_util(afs_path, drive)
+    def prepare_submission(self):
+        self.afs_data, self.bus_name, self.matched_folder, self.match_score = prepare_submission_util(self.selected_application_file, self.drive)
+        return self.afs_data, self.bus_name, self.matched_folder, self.match_score
     
     def is_likely_application(self, file_path):
         return is_likely_application_util(file_path)

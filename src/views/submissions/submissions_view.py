@@ -3,14 +3,15 @@ from PIL import Image, ImageTk
 
 
 class SubmissionsView(tk.Frame):
-    def __init__(self, controller, root):
+    def __init__(self, controller, model, root):
         super().__init__(root, bg=controller.bg_color)
         self.root = root
         self.controller = controller
+        self.model = model
         self.bg_color = controller.bg_color
         self.dnd_bg_color = controller.dnd_bg_color
-        self.version = controller.version
-        self.drive = controller.drive
+        self.version = model.version
+        self.drive = model.drive
 
         self.spinner_running = False
         self.spinner_frame = 0

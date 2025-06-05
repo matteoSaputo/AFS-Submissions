@@ -23,22 +23,14 @@ class SubmissionsController:
         # Create upload dir if it doesn't exist
         os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-        self.version = self.model.get_version()
         self.bg_color = BG_COLOR
         self.dnd_bg_color = DND_BG_COLOR
 
-        self.drive = self.load_drive_path()
-        self.uploaded_files = []
-        self.selected_application_file = None
-        self.afs_data = None
-        self.bus_name = None
-        self.customer_folder = None
-        self.matched_folder = None
-        self.match_score = None
+        self.model.drive = self.load_drive_path()
 
         self.max_visible_rows = 5
 
-        self.view = SubmissionsView(self, root)
+        self.view = SubmissionsView(self, self.model, root)
 
     def upload_pdf(self):
         file_paths = list(filedialog.askopenfilenames())
@@ -63,12 +55,12 @@ class SubmissionsController:
         for widget in self.view.scroll_frame.winfo_children():
             widget.destroy()
 
-        if not self.uploaded_files:
+        if not self.model.uploaded_files:
             self.hide_file_list_frame()
             return
         self.show_file_list_frame()
 
-        for file in self.uploaded_files:
+        for file in self.model.uploaded_files:
             row = tk.Frame(self.view.scroll_frame, bg=self.dnd_bg_color)
             row.pack(fill="x", padx=4, pady=2)
 
@@ -83,7 +75,7 @@ class SubmissionsController:
                 padx=6
             )
 
-            if file == self.selected_application_file:
+            if file == self.model.selected_application_file:
                 label.config(bg='#bfbfbf')
 
             btn.pack(side="right", padx=5)
@@ -106,12 +98,12 @@ class SubmissionsController:
         try:
             if os.path.exists(file_path):
                 os.remove(file_path)
-            self.uploaded_files.remove(file_path)
+            self.model.uploaded_files.remove(file_path)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to delete file {file_path}: {e}")
         
-        if file_path == self.selected_application_file:
-            self.selected_application_file = None
+        if file_path == self.model.selected_application_file:
+            self.model.selected_application_file = None
             self.model.clean_uploads_folder()
             self.reset_folder_UI()
         
@@ -144,8 +136,8 @@ class SubmissionsController:
                 if not os.path.exists(dest_path):
                     shutil.copy(file, dest_path)
                 if filename == os.path.basename(likely_application):
-                    self.selected_application_file = dest_path
-                self.uploaded_files.append(dest_path)
+                    self.model.selected_application_file = dest_path
+                self.model.uploaded_files.append(dest_path)
 
             self.update_file_display()
 
@@ -153,17 +145,18 @@ class SubmissionsController:
                 self.hide_spinner()
                 return
             
-            self.start_submission(self.selected_application_file)
+            self.start_submission(self.model.selected_application_file)
 
         threading.Thread(target=process).start()
 
     def start_submission(self, upload_path):
         try:
-            self.afs_data, self.bus_name, self.matched_folder, self.match_score = self.model.prepare_submission(upload_path, self.drive)
+            # self.model.afs_data, self.model.bus_name, self.model.matched_folder, self.model.match_score = 
+            self.model.prepare_submission()
 
-            if self.matched_folder:
+            if self.model.matched_folder:
                 self.view.match_label.config(
-                    text=f"Matched Folder:\n{self.matched_folder}\n\nBusiness Name:\n{self.bus_name}\n\nMatch Score: {self.match_score}%"
+                    text=f"Matched Folder:\n{self.model.matched_folder}\n\nBusiness Name:\n{self.model.bus_name}\n\nMatch Score: {self.model.match_score}%"
                 )
             else:
                 self.view.match_label.config(text="No match found.\nWill create new folder.")
@@ -185,18 +178,12 @@ class SubmissionsController:
 
     def finalize_submission(self, use_existing):
         try:
-            if self.matched_folder and use_existing:
-                self.customer_folder = os.path.join(self.drive, self.matched_folder)
+            if self.model.matched_folder and use_existing:
+                self.model.customer_folder = os.path.join(self.model.drive, self.model.matched_folder)
             else:
-                self.customer_folder = os.path.join(self.drive, self.bus_name)
+                self.model.customer_folder = os.path.join(self.model.drive, self.model.bus_name)
             
-            self.model.process_submission(
-                self.selected_application_file, 
-                self.uploaded_files,
-                self.afs_data, 
-                self.bus_name,
-                self.customer_folder
-            )
+            self.model.process_submission()
 
             messagebox.showinfo("Success", "Submission processed successfully!")
 
@@ -208,7 +195,7 @@ class SubmissionsController:
 
     def reset_folder_UI(self):
         self.view.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
-        self.uploaded_files = []
+        self.model.uploaded_files = []
         self.view.match_label.config(text="")
         self.view.confirm_btn.config(state=tk.DISABLED)
         self.view.new_folder_btn.config(state=tk.DISABLED)
@@ -217,7 +204,7 @@ class SubmissionsController:
     def show_file_list_frame(self):
         self.view.upload_btn.place_forget()
         row_height = 30
-        visible_rows = min(len(self.uploaded_files)+1, self.max_visible_rows)
+        visible_rows = min(len(self.model.uploaded_files)+1, self.max_visible_rows)
         actual_height = row_height * visible_rows
         max_height = row_height * self.max_visible_rows
         relheight = actual_height / max_height - 0.02
@@ -225,7 +212,7 @@ class SubmissionsController:
         self.view.scroll_canvas.place(relx=0.02, rely=0.02, relwidth=0.9, relheight=relheight)
         self.view.scroll_frame.config(height=relheight)
         
-        if len(self.uploaded_files)-1 > self.max_visible_rows:
+        if len(self.model.uploaded_files)-1 > self.max_visible_rows:
             self.view.scrollbar.place(relx=0.92, rely=0.02, relheight=relheight)
         else:
             self.view.scrollbar.place_forget()
@@ -293,8 +280,8 @@ class SubmissionsController:
         if drive_path:
             with open(drive_path_file, "w") as f:
                 f.write(drive_path)
-            self.drive = drive_path
-            self.view.drive_label.config(text=f"Drive: {self.drive}")
+            self.model.drive = drive_path
+            self.view.drive_label.config(text=f"Drive: {self.model.drive}")
             messagebox.showinfo("Drive Updated", "Shared drive path updated successfully!")
 
     def prompt_for_drive(self):
