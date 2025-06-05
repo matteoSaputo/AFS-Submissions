@@ -43,7 +43,7 @@ class SubmissionsController:
         self.handle_files(pdf_files)
         self.view.drop_frame.config(bg=self.dnd_bg_color)
 
-    def limit_file_name(file, limit=50):
+    def limit_file_name(self, file, limit=50):
         name, extension = os.path.splitext(file)
         if len(file) > limit:
             return f"{name[:limit]}...{extension}"
