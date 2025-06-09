@@ -19,10 +19,6 @@ class SubmissionsController:
 
         self.model = SubmissionsModel(UPLOAD_DIR)
 
-        self.upload_dir = self.model.upload_dir  
-        # Create upload dir if it doesn't exist
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
-
         self.bg_color = BG_COLOR
         self.dnd_bg_color = DND_BG_COLOR
 
@@ -131,7 +127,7 @@ class SubmissionsController:
 
             for file in extracted_files:
                 filename = os.path.basename(file)
-                dest_path = os.path.join(self.upload_dir, filename)
+                dest_path = os.path.join(self.model.upload_dir, filename)
                 if not os.path.exists(dest_path):
                     shutil.copy(file, dest_path)
                 if filename == os.path.basename(likely_application):

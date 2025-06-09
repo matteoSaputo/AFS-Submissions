@@ -1,11 +1,11 @@
-from models.submissions.utils.afs_parser import extract_afs_data
-from models.submissions.utils.fill_nrs import fill_nrs
-from models.submissions.utils.redact_contact_info import redact_contact_info
-from models.submissions.utils.find_matching_folder import find_matching_folder
-from models.submissions.utils.generate_business_name import generate_business_name
-from models.submissions.utils.resource_path import resource_path
-from models.submissions.utils.migrate_to_drive import migrate_to_drive
-from models.submissions.utils.flatten_pdf import flatten_pdf
+from models.utils.afs_parser import extract_afs_data
+from models.utils.fill_nrs import fill_nrs
+from models.utils.redact_contact_info import redact_contact_info
+from models.utils.find_matching_folder import find_matching_folder
+from models.utils.generate_business_name import generate_business_name
+from models.utils.resource_path import resource_path
+from models.utils.migrate_to_drive import migrate_to_drive
+from models.utils.flatten_pdf import flatten_pdf
 
 import os
 import re
@@ -49,10 +49,9 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
     nrs_application = resource_path(f"data/uploads/NRS Funding Application - {bus_name}.pdf")
 
     # Rename afs app with business name
-    if not os.path.exists(business_application):
-        flatten_pdf(upload_path, business_application)
+    # if not os.path.exists(business_application):
     attatchements.remove(upload_path)
-    attatchements.append(business_application)
+    attatchements.append(flatten_pdf(upload_path, business_application))
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)
