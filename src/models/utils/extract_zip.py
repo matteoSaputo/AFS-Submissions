@@ -1,4 +1,3 @@
-from tkinter import messagebox
 import zipfile
 import os
 
@@ -11,5 +10,5 @@ def extract_zip(zip_path):
                 extracted_path = os.path.join(os.path.dirname(zip_path), name)
                 extracted.append(extracted_path)
     except Exception as e:
-        messagebox.showerror("Error", f"Failed to extract {os.path.basename(zip_path)}")
+        print("Error", f"Failed to extract {os.path.basename(zip_path)}")
     return extracted

@@ -141,10 +141,10 @@ class SubmissionsView(tk.Frame):
             command=controller.confirm_folder, 
             bg="#28a745", 
             fg="white", 
-            state=tk.DISABLED,
+            # state=tk.DISABLED,
             width=20
         )
-        self.confirm_btn.pack(side="left", padx=5)
+        # self.confirm_btn.pack(side="left", padx=5)
 
         self.new_folder_btn = tk.Button(
             self.folder_button_frame, 
@@ -153,19 +153,19 @@ class SubmissionsView(tk.Frame):
             command=controller.create_new_folder, 
             bg="#dc3545", 
             fg="white", 
-            state=tk.DISABLED,
+            # state=tk.DISABLED,
             width=20
         )
-        self.new_folder_btn.pack(side="left", padx=15)
+        # self.new_folder_btn.pack(side="left", padx=15)
 
-        self.version_label = tk.Label(
-            self,
-            text=f"Version: {self.version}",
-            font=("Segoe UI", 10),
-            bg=self.bg_color,
-            fg="gray"
-        )
-        self.version_label.pack(side="bottom", pady=10)
+        # self.version_label = tk.Label(
+        #     self,
+        #     text=f"Version: {self.version}",
+        #     font=("Segoe UI", 10),
+        #     bg=self.bg_color,
+        #     fg="gray"
+        # )
+        # self.version_label.pack(side="bottom", pady=10)
 
         self.clear_files_btn = tk.Button(
             self,

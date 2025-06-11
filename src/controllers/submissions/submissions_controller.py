@@ -2,10 +2,10 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 
 import os
-import shutil
 import threading
 
 # Import model and view
+from controllers.services.submissions_service import SubmissionService
 from models.submissions.submissions_model import SubmissionsModel
 from views.submissions.submissions_view import SubmissionsView
 
@@ -18,6 +18,7 @@ class SubmissionsController:
         self.root = root
 
         self.model = SubmissionsModel(UPLOAD_DIR)
+        self.service = SubmissionService(self.model)
 
         self.bg_color = BG_COLOR
         self.dnd_bg_color = DND_BG_COLOR
@@ -39,12 +40,6 @@ class SubmissionsController:
         self.handle_files(pdf_files)
         self.view.drop_frame.config(bg=self.dnd_bg_color)
 
-    def limit_file_name(self, file, limit=50):
-        name, extension = os.path.splitext(file)
-        if len(file) > limit:
-            return f"{name[:limit]}...{extension}"
-        return file 
-
     def update_file_display(self):
         for widget in self.view.scroll_frame.winfo_children():
             widget.destroy()
@@ -58,7 +53,7 @@ class SubmissionsController:
             row = tk.Frame(self.view.scroll_frame, bg=self.dnd_bg_color)
             row.pack(fill="x", padx=4, pady=2)
 
-            label = tk.Button(row, text=self.limit_file_name(os.path.basename(file)), bg=self.dnd_bg_color, anchor="w")
+            label = tk.Button(row, text=self.service.limit_file_name(os.path.basename(file)), bg=self.dnd_bg_color, anchor="w")
             label.pack(side="left", fill="x", expand=True)
 
             btn = tk.Button(row, 
@@ -76,7 +71,7 @@ class SubmissionsController:
         
         self.make_scrollable_for_file_list(self.view.drop_frame)        
 
-    def make_scrollable_for_file_list(self, widget):
+    def make_scrollable_for_file_list(self, widget: tk.Widget):
         if not widget:
             return
         if not self.view.scrollbar.winfo_ismapped():
@@ -90,53 +85,19 @@ class SubmissionsController:
             self.make_scrollable_for_file_list(w)
         
     def delete_file(self, file_path):
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            self.model.uploaded_files.remove(file_path)
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to delete file {file_path}: {e}")
-        
-        if file_path == self.model.selected_application_file:
-            self.model.selected_application_file = None
-            self.model.clean_uploads_folder()
-            self.reset_folder_UI()
-        
+        self.service.delete_file(file_path)  
+        if self.model.selected_application_file == None:
+            self.reset_folder_UI()      
         self.update_file_display()
 
     def handle_files(self, file_list):
         self.show_spinner()
 
         def process():          
-            extracted_files = []
-
-            for original_path in file_list:
-                if original_path.lower().endswith(".zip"):
-                    file_list.extend(self.model.extract_zip(original_path))
-                    continue
-                extracted_files.append(original_path)
-
-            likely_application = ""
-            for file in extracted_files:
-                if self.model.is_likely_application(file):
-                    likely_application = file
-                    
-            if likely_application:
-                self.model.clean_uploads_folder()
-                self.reset_folder_UI()
-
-            for file in extracted_files:
-                filename = os.path.basename(file)
-                dest_path = os.path.join(self.model.upload_dir, filename)
-                if not os.path.exists(dest_path):
-                    shutil.copy(file, dest_path)
-                if filename == os.path.basename(likely_application):
-                    self.model.selected_application_file = dest_path
-                self.model.uploaded_files.append(dest_path)
-
+            self.service.handle_files(file_list)
             self.update_file_display()
 
-            if not likely_application:
+            if not self.model.selected_application_file:
                 self.hide_spinner()
                 return
             
@@ -146,7 +107,7 @@ class SubmissionsController:
 
     def start_submission(self):
         try:
-            self.model.prepare_submission()
+            self.service.prepare_submission()
 
             if self.model.matched_folder:
                 self.view.match_label.config(
@@ -155,8 +116,15 @@ class SubmissionsController:
             else:
                 self.view.match_label.config(text="No match found.\nWill create new folder.")
 
-            self.view.confirm_btn.config(state=tk.NORMAL)
-            self.view.new_folder_btn.config(state=tk.NORMAL)
+            # self.view.title_label.pack_forget()
+            # self.view.change_drive_btn.pack_forget()
+            # self.view.drive_label.pack_forget()
+
+            self.view.confirm_btn.pack(side="left", padx=5)
+            self.view.new_folder_btn.pack(side="left", padx=15)
+
+            # self.view.confirm_btn.config(state=tk.NORMAL)
+            # self.view.new_folder_btn.config(state=tk.NORMAL)
 
         except Exception as e:
             messagebox.showerror("Error", str(e))
@@ -172,27 +140,23 @@ class SubmissionsController:
 
     def finalize_submission(self, use_existing):
         try:
-            if self.model.matched_folder and use_existing:
-                self.model.customer_folder = os.path.join(self.model.drive, self.model.matched_folder)
-            else:
-                self.model.customer_folder = os.path.join(self.model.drive, self.model.bus_name)
-            
-            self.model.process_submission()
-
+            self.service.finalize_submission(use_existing)
             messagebox.showinfo("Success", "Submission processed successfully!")
-
-            # Reset UI
             self.reset_folder_UI()
-
         except Exception as e:
             messagebox.showerror("Error", f"Failed to process: {str(e)}")
 
     def reset_folder_UI(self):
         self.view.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
-        self.model.uploaded_files = []
+        self.service.reset_model_state()
         self.view.match_label.config(text="")
-        self.view.confirm_btn.config(state=tk.DISABLED)
-        self.view.new_folder_btn.config(state=tk.DISABLED)
+        # self.view.title_label.pack(side='top', pady=(30, 20))
+        # self.view.change_drive_btn.pack(side='top', pady=(0, 10))
+        # self.view.drive_label.pack(side='top', pady=(0, 20))
+        self.view.confirm_btn.pack_forget()
+        self.view.new_folder_btn.pack_forget()
+        # self.view.confirm_btn.config(state=tk.DISABLED)
+        # self.view.new_folder_btn.config(state=tk.DISABLED)
         self.update_file_display()
 
     def show_file_list_frame(self):
