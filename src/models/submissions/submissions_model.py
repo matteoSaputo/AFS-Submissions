@@ -18,7 +18,9 @@ class SubmissionsModel(MainModel):
         self.drive = None
         self.uploaded_files = []
         self.selected_application_file = None
+        self.application_file_type = None
         self.afs_data = None
+        self.missing_vlaues = None
         self.bus_name = None
         self.customer_folder = None
         self.matched_folder = None
@@ -32,13 +34,15 @@ class SubmissionsModel(MainModel):
             self.selected_application_file,
             self.uploaded_files,
             self.afs_data,
+            self.missing_vlaues,
+            self.application_file_type,
             self.bus_name,
             self.customer_folder
         )
     
     def prepare_submission(self):
-        self.afs_data, self.bus_name, self.matched_folder, self.match_score = _prepare_submission(self.selected_application_file, self.drive)
-        return self.afs_data, self.bus_name, self.matched_folder, self.match_score
+        self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score = _prepare_submission(self.selected_application_file, self.drive)
+        return self.afs_data, self.missing_vlaues, self.selected_application_file, self.bus_name, self.matched_folder, self.match_score
     
     def is_likely_application(self, file_path):
         return _is_likely_application(file_path)

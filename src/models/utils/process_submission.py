@@ -1,17 +1,19 @@
 from models.utils.afs_parser import extract_afs_data
 from models.utils.fill_nrs import fill_nrs
+from models.utils.overlay_default_vlaues_afs import overlay_default_values_afs
 from models.utils.redact_contact_info import redact_contact_info
 from models.utils.find_matching_folder import find_matching_folder
 from models.utils.generate_business_name import generate_business_name
 from models.utils.resource_path import resource_path
 from models.utils.migrate_to_drive import migrate_to_drive
 from models.utils.flatten_pdf import flatten_pdf
+from models.utils.fill_afs_from_csv import fill_afs_from_data
 
 import os
 import re
 
 def prepare_submission(afs_path, drive):
-    afs_data = extract_afs_data(afs_path)
+    afs_data, missing_values, file_type = extract_afs_data(afs_path)
 
     # Create a cleaned business name
     if not afs_data.get("Business Legal Name") and afs_data.get("DBA"):
@@ -31,10 +33,10 @@ def prepare_submission(afs_path, drive):
         dba_name=afs_data.get("DBA", "")
     )
 
-    return afs_data, bus_name, matched_folder, match_score
+    return afs_data, missing_values, file_type, bus_name, matched_folder, match_score
 
 
-def process_submission(upload_path, attatchements, afs_data, bus_name, customer_folder):
+def process_submission(upload_path, attatchements, afs_data, missing_values, file_type, bus_name, customer_folder):
     """
     Takes in:
     - upload_path: path to uploaded PDF (e.g., "./data/uploads/document.pdf")
@@ -48,10 +50,14 @@ def process_submission(upload_path, attatchements, afs_data, bus_name, customer_
     business_sub_application = resource_path(f"data/uploads/Business Sub Application - {bus_name}.pdf")
     nrs_application = resource_path(f"data/uploads/NRS Funding Application - {bus_name}.pdf")
 
-    # Rename afs app with business name
-    # if not os.path.exists(business_application):
     attatchements.remove(upload_path)
-    attatchements.append(flatten_pdf(upload_path, business_application))
+    if file_type == '.pdf' and overlay_default_values_afs(upload_path, 'temp_path.pdf', missing_values):
+        os.replace('temp_path.pdf', upload_path)
+        # Rename afs app with business name
+        # if not os.path.exists(business_application):
+        attatchements.append(flatten_pdf(upload_path, business_application))
+    if file_type == '.csv':
+        attatchements.append(fill_afs_from_data(afs_data, business_application))
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)

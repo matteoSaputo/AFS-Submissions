@@ -1,11 +1,12 @@
 import pdfplumber
 import re
 import random
-import fitz
 import os
 import sys
 import contextlib
-from models.utils.resource_path import resource_path
+import csv
+import pandas as pd
+import datetime
 
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"
@@ -13,50 +14,20 @@ INLINE_SUBFIELDS = [
 SECTION_HEADINGS = [
     "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
 ]
+CSV_HEADERS = [
+    "DBA", "Entity Type", "EIN", "Business Email", "Business Phone Number",
+    "Business Fax", "Business Start Date", "Centrex ID (Hidden)", "Business Address",
+    "Primary Owner Name", "Email", "Cell Phone", "SSN", "Date Of Birth",
+    "Estimated Credit Score", "Ownership", "Home Address", "Business Description",
+    "Purpose of Funds", "Annual Business Revenue", "Requested Funding Amount",
+    "Average Monthly Credit Card Volume", "Outstanding Receivables", "Upload your statements here"
+]
+TODAY = str(datetime.date.today())
 
 def normalize_field_name(field):
     # Insert space before capital letters that follow lowercase or other capitals
     spaced = re.sub(r'(?<=[a-zA-Z])(?=[A-Z])', ' ', field)
     return spaced.strip().title()
-
-def overlay_afs_fields(input_path, output_path, missing_data):
-    if not missing_data:
-        return None
-
-    doc = fitz.open(input_path)
-    page = doc[0]  # Assuming all data is on page 1
-
-    # Define positions
-    field_coords = {
-        "S S N": (65, 280),                 
-        "Date Of Birth": (305, 280),
-        "Business Start Date": (325, 180)
-    }
-
-    # Load the custom Lucida Console font
-    font_path = resource_path("data/fonts/LUCON.TTF")
-
-    # Font settings
-    font_size = 9
-    font_color = (0, 0, 0)  # Black
-
-    for field, value in missing_data.items():
-        if field in field_coords and value.strip():
-            x, y = field_coords[field]
-            # Use insert_textbox to allow font embedding
-            rect = fitz.Rect(x, y, x + 200, y + 15)  # Adjust width/height as needed
-            page.insert_textbox(
-                rect,
-                value,
-                fontname="lucida-console",     
-                fontfile=font_path,          
-                fontsize=font_size,
-                color=font_color,
-                align=0  # left-align
-            )
-
-    doc.save(output_path)
-    return output_path
 
 def truncate_name_at_word(name, limit=40):
     if len(name) <= limit:
@@ -84,17 +55,6 @@ def split_inline_fields(field, value, inline_fields):
             return subresults
     return {field: value.strip()}
 
-def extract_special_field_from_lines(lines, target_field="*Date:", field_name="Date"):
-    """Handles special case where the field value (e.g., a date) appears on the line above its label."""
-    for idx, line in enumerate(lines):
-        if target_field in line:
-            if idx > 0:
-                possible_value = lines[idx - 1].strip()
-                if re.match(r"\d{1,2}/\d{1,2}/\d{4}", possible_value):
-                    return field_name, possible_value
-            break
-    return field_name, "Not Found"
-
 def is_likely_application(file_path):
     @contextlib.contextmanager
     def suppress_stdout_stderr():
@@ -110,6 +70,12 @@ def is_likely_application(file_path):
                 sys.stderr = old_stderr
                 
     try:
+        if file_path.lower().endswith(".csv"):
+            with open(file_path, newline='', encoding='utf-8') as csvfile:
+                reader = csv.reader(csvfile)
+                headers = next(reader)
+                return all(h in headers for h in CSV_HEADERS)
+        
         with suppress_stdout_stderr():    
             with pdfplumber.open(file_path) as pdf:
                 page = pdf.pages[0]
@@ -123,8 +89,30 @@ def is_likely_application(file_path):
     except Exception:
         return False
 
-def extract_afs_data(pdf_path):
-    """Main function to extract cleaned AFS application data from a PDF."""
+def extract_afs_data(file_path):
+    if not is_likely_application(file_path):
+        return None
+    ext = os.path.splitext(file_path)[1]
+    afs_data = {} 
+    missing_values = {}
+    if ext == '.pdf':
+        afs_data, missing_values = extract_from_pdf(file_path)
+    elif ext == '.csv':
+         afs_data, missing_values = extract_from_csv(file_path)
+    return afs_data, missing_values, ext
+    
+def extract_from_csv(csv_path):
+    df = pd.read_csv(csv_path)
+    if df.empty:
+        return None
+    afs_data = {}
+    row = df.iloc[0].fillna("")
+    matches = list(row.items())
+    afs_data = extract_from_list(matches)
+    afs_data['Date'] = TODAY
+    return afs_data, track_missing_values(afs_data)
+
+def extract_from_pdf(pdf_path):
     if not is_likely_application(pdf_path):
         return None
     
@@ -137,17 +125,27 @@ def extract_afs_data(pdf_path):
     if start != -1:
         full_text = full_text[start:]
 
-    # Track what section we're in
-    current_section = "Business"
-
     # Main pattern for extracting fields
     pattern = r"\*\s*(?P<field>[^:*]+?)\s*:\s*(?P<value>.*?)(?=\s*\*[^:*]+?:|\n|$)"
     matches = re.findall(pattern, full_text)
 
+    afs_data = extract_from_list(matches)
+
+    # Limit Business Name to 30 characters
+    afs_data["Business Legal Name"] = truncate_name_at_word(afs_data["Business Legal Name"])
+
+    afs_data['Date'] = TODAY
+
+    return afs_data, track_missing_values(afs_data)
+
+def extract_from_list(list):
+    # Track what section we're in
+    current_section = "Business"
+
     afs_data = {}
-    for field, value in matches:
-        field = normalize_field_name(field.strip())
-        value = clean_value(value)
+    for field, value in list:
+        field = normalize_field_name(str(field.strip()))
+        value = clean_value(str(value))
 
         # Detect section change
         if field.lower() == "primary owner name":
@@ -156,16 +154,26 @@ def extract_afs_data(pdf_path):
         # Add section prefix to disambiguate duplicates
         normalized_field = f"{current_section} {field}" if field in ["Address", "City", "State", "Zip"] else field
 
+        if 'Address' in normalized_field and '\n' in value:
+            address = value.split('\n')[:-1]
+            street, city_state, zip_code = address
+            city, state = city_state.split(", ")
+            address_mapping = {
+                "Address": street, "City": city, "State": state, "Zip Code": zip_code
+            }
+            for address_field, address_value in address_mapping.items():
+                afs_data.update(split_inline_fields(f"{current_section} {address_field}", address_value, INLINE_SUBFIELDS))
+            continue
+
         afs_data.update(split_inline_fields(normalized_field, value, INLINE_SUBFIELDS))
+    return afs_data
 
-    # Limit Business Name to 30 characters
-    afs_data["Business Legal Name"] = truncate_name_at_word(afs_data["Business Legal Name"])
-
+def track_missing_values(afs_data):
     # Track which values were missing
     missing_values = {}
 
     # Handle missing SSN
-    if not afs_data.get("S S N") or afs_data["S S N"].strip() == '':
+    if not afs_data.get("S S N") or afs_data["S S N"].strip() == "":
         afs_data["S S N"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
         missing_values["S S N"] = afs_data["S S N"]
 
@@ -179,14 +187,4 @@ def extract_afs_data(pdf_path):
         afs_data["Business Start Date"] = "01/01/2020"
         missing_values["Business Start Date"] = afs_data["Business Start Date"]
 
-    # Generate missing values
-    temp_path = resource_path("temp_overlay.pdf")
-    if overlay_afs_fields(pdf_path, temp_path, missing_values):
-        os.replace(temp_path, pdf_path)
-
-    # Special fix for "Date"
-    lines = full_text.splitlines()
-    date_field, date_value = extract_special_field_from_lines(lines)
-    afs_data[date_field] = date_value
-
-    return afs_data
+    return missing_values
