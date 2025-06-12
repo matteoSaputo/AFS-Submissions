@@ -174,9 +174,12 @@ class SubmissionsController:
             self.view.scrollbar.place(relx=0.92, rely=0.02, relheight=relheight)
         else:
             self.view.scrollbar.place_forget()
+        
+        self.view.clear_files_btn.pack(side="bottom", pady=10)
 
     def hide_file_list_frame(self):    
         self.view.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
+        self.view.clear_files_btn.pack_forget()
         self.view.scroll_canvas.place_forget()
         self.view.scrollbar.place_forget()
 

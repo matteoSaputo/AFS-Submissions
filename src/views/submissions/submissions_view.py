@@ -144,7 +144,6 @@ class SubmissionsView(tk.Frame):
             # state=tk.DISABLED,
             width=20
         )
-        # self.confirm_btn.pack(side="left", padx=5)
 
         self.new_folder_btn = tk.Button(
             self.folder_button_frame, 
@@ -156,16 +155,6 @@ class SubmissionsView(tk.Frame):
             # state=tk.DISABLED,
             width=20
         )
-        # self.new_folder_btn.pack(side="left", padx=15)
-
-        # self.version_label = tk.Label(
-        #     self,
-        #     text=f"Version: {self.version}",
-        #     font=("Segoe UI", 10),
-        #     bg=self.bg_color,
-        #     fg="gray"
-        # )
-        # self.version_label.pack(side="bottom", pady=10)
 
         self.clear_files_btn = tk.Button(
             self,
@@ -177,7 +166,6 @@ class SubmissionsView(tk.Frame):
             width=10,
             height=1
         )
-        self.clear_files_btn.pack(side="bottom", pady=10)
 
     def configure_dnd(self, widget):
         widget.drop_target_register('DND_Files')
