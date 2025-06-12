@@ -116,15 +116,12 @@ class SubmissionsController:
             else:
                 self.view.match_label.config(text="No match found.\nWill create new folder.")
 
-            # self.view.title_label.pack_forget()
-            # self.view.change_drive_btn.pack_forget()
-            # self.view.drive_label.pack_forget()
+            self.view.title_label.pack_forget()
+            self.view.change_drive_btn.pack_forget()
+            self.view.drive_label.pack_forget()
 
-            self.view.confirm_btn.pack(side="left", padx=5)
-            self.view.new_folder_btn.pack(side="left", padx=15)
-
-            # self.view.confirm_btn.config(state=tk.NORMAL)
-            # self.view.new_folder_btn.config(state=tk.NORMAL)
+            self.view.match_label.pack(pady=20)
+            self.view.folder_button_frame.pack(pady=10)
 
         except Exception as e:
             messagebox.showerror("Error", str(e))
@@ -150,13 +147,13 @@ class SubmissionsController:
         self.view.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
         self.service.reset_model_state()
         self.view.match_label.config(text="")
-        # self.view.title_label.pack(side='top', pady=(30, 20))
-        # self.view.change_drive_btn.pack(side='top', pady=(0, 10))
-        # self.view.drive_label.pack(side='top', pady=(0, 20))
-        self.view.confirm_btn.pack_forget()
-        self.view.new_folder_btn.pack_forget()
-        # self.view.confirm_btn.config(state=tk.DISABLED)
-        # self.view.new_folder_btn.config(state=tk.DISABLED)
+        self.view.drop_frame.pack_forget()
+        self.view.title_label.pack(side='top', pady=(30, 20))
+        self.view.change_drive_btn.pack(side='top', pady=(0, 10))
+        self.view.drive_label.pack(side='top', pady=(0, 20))
+        self.view.drop_frame.pack(side="top", pady=10)
+        self.view.match_label.pack_forget()
+        self.view.folder_button_frame.pack_forget()
         self.update_file_display()
 
     def show_file_list_frame(self):
@@ -198,14 +195,14 @@ class SubmissionsController:
         self.root.after(100, self.animate_spinner)
 
     def show_spinner(self):
-        self.view.spinner_canvas.place(relx=0.5, rely=0.8, anchor="center")
+        self.view.spinner_canvas.pack(side="bottom")
         if not self.view.spinner_running:
             self.view.spinner_running = True
             self.animate_spinner()
         self.root.update()
     
     def hide_spinner(self):
-        self.view.spinner_canvas.place_forget()
+        self.view.spinner_canvas.pack_forget()
         self.view.spinner_running = False
         self.root.update()
 

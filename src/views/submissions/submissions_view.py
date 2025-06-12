@@ -20,7 +20,7 @@ class SubmissionsView(tk.Frame):
         self.spinner_path = self.controller.model.resource_path("assets/spinner.gif")
 
         self.max_visible_rows = 5
-
+        # self.configure(bg="#A84848")
         # --- UI Elements ---
         self.title_label = tk.Label(
             self, 
@@ -28,7 +28,7 @@ class SubmissionsView(tk.Frame):
             font=("Segoe UI", 18, "bold"), 
             bg=self.bg_color
         )
-        self.title_label.pack(pady=(30, 20))
+        self.title_label.pack(side="top", pady=(30, 20))
 
         self.change_drive_btn = tk.Button(
             self,
@@ -39,7 +39,7 @@ class SubmissionsView(tk.Frame):
             fg="white",
             width=20
         )
-        self.change_drive_btn.pack(pady=(0, 10))
+        self.change_drive_btn.pack(side="top", pady=(0, 10))
 
         self.drive_label = tk.Label(
             self,
@@ -48,7 +48,7 @@ class SubmissionsView(tk.Frame):
             bg=self.bg_color,
             fg="gray"
         )
-        self.drive_label.pack(pady=(0, 20))
+        self.drive_label.pack(side="top", pady=(0, 20))
         if self.drive:
             self.drive_label.config(text=f"Drive: {self.drive}")
         else:
@@ -129,10 +129,8 @@ class SubmissionsView(tk.Frame):
             font=("Segoe UI", 12), 
             bg=self.bg_color
         )
-        self.match_label.pack(pady=20)
 
         self.folder_button_frame = tk.Frame(self, bg=self.bg_color)
-        self.folder_button_frame.pack(pady=10)
 
         self.confirm_btn = tk.Button(
             self.folder_button_frame, 
@@ -141,9 +139,9 @@ class SubmissionsView(tk.Frame):
             command=controller.confirm_folder, 
             bg="#28a745", 
             fg="white", 
-            # state=tk.DISABLED,
             width=20
         )
+        self.confirm_btn.pack(side="left", padx=5)
 
         self.new_folder_btn = tk.Button(
             self.folder_button_frame, 
@@ -152,9 +150,9 @@ class SubmissionsView(tk.Frame):
             command=controller.create_new_folder, 
             bg="#dc3545", 
             fg="white", 
-            # state=tk.DISABLED,
             width=20
         )
+        self.new_folder_btn.pack(side="left", padx=15)
 
         self.clear_files_btn = tk.Button(
             self,

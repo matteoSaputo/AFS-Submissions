@@ -10,8 +10,10 @@ FOOTER_BG_COLOR = "#474545"
 class MainController:
     def __init__(self, root):        
         self.model = MainModel()
+        
         self.view = MainView(root, BG_COLOR)
         self.view.pack(expand=True)
+
         self.submissions_controller = SubmissionsController(self.view, BG_COLOR, DND_BG_COLOR)
         self.submissions_view = self.submissions_controller.view
         
