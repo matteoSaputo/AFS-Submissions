@@ -54,11 +54,11 @@ def fill_afs_from_data(afs_data: dict, output_path):
         "Business Address": ["Address"],
         "Business City": ["City"],
         "Business State": ["State"],
-        "Business Zip Code": ["Zip"],
+        "Business Zip": ["Zip"],
 
         # Owner info
         "S S N": ["SSN"],
-        "Ownership %": ["Ownership"],
+        "Ownership": ["Ownership %"],
         "Date Of Birth": ["Date of Birth"],
         "Business Email": ["eMail"],
         "Business Phone Number": ["Phone"],
@@ -71,7 +71,7 @@ def fill_afs_from_data(afs_data: dict, output_path):
         "Home Address": ["Address_2"],
         "Home City": ["City_2"],
         "Home State": ["State_2"],
-        "Home Zip Code": ["Zip_2"],
+        "Home Zip": ["Zip_2"],
 
         # Date of application
         "Date": ["Date"],

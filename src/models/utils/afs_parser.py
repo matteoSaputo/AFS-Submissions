@@ -159,7 +159,7 @@ def extract_from_list(list):
             street, city_state, zip_code = address
             city, state = city_state.split(", ")
             address_mapping = {
-                "Address": street, "City": city, "State": state, "Zip Code": zip_code
+                "Address": street, "City": city, "State": state, "Zip": zip_code
             }
             for address_field, address_value in address_mapping.items():
                 afs_data.update(split_inline_fields(f"{current_section} {address_field}", address_value, INLINE_SUBFIELDS))
