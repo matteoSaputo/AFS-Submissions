@@ -53,11 +53,10 @@ def process_submission(upload_path, attatchements, afs_data, missing_values, fil
     attatchements.remove(upload_path)
     if file_type == '.pdf' and overlay_default_values_afs(upload_path, 'temp_path.pdf', missing_values):
         os.replace('temp_path.pdf', upload_path)
-        # Rename afs app with business name
-        # if not os.path.exists(business_application):
-        attatchements.append(flatten_pdf(upload_path, business_application))
     if file_type == '.csv':
         attatchements.append(fill_afs_from_data(afs_data, business_application))
+    else:
+        attatchements.append(flatten_pdf(upload_path, business_application))
 
     # Create the customer folder if it doesn't exist
     os.makedirs(customer_folder, exist_ok=True)

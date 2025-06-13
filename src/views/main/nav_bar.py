@@ -18,33 +18,30 @@ class NavigationBar(tk.Frame):
         self.submissions_btn = tk.Button(
             self.btns_label,
             text="Submissions",
-            font=("Segoe UI", 13, "bold"),
+            font=("Courier", 13, "bold"),
             fg="black",
             bg=bg_color,
         )
-        # self.submissions_btn.place(relheight=1.0)
         self.submissions_btn.pack(side="left", expand=True, fill="both")
         self.btns.append(self.submissions_btn)
 
         self.contracts_btn = tk.Button(
             self.btns_label,
             text=" Contracts ",       
-            font=("Segoe UI", 13, "bold"),
+            font=("Courier", 13, "bold"),
             fg="black",
             bg=bg_color,
         )
-        # self.contracts_btn.place(relheight=1.0)
         self.contracts_btn.pack(side="left", expand=True, fill="both")
         self.btns.append(self.contracts_btn)
 
         self.email_btn = tk.Button(
             self.btns_label,
             text="   Email   ",
-            font=("Segoe UI", 13, "bold"),
+            font=("Courier", 13, "bold"),
             fg="black",
             bg=bg_color,
         )
-        # self.email_btn.place(relheight=1.0)
         self.email_btn.pack(side="left", expand=True, fill="both")
         self.btns.append(self.email_btn)
 
