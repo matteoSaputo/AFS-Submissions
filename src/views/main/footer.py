@@ -15,4 +15,4 @@ class Footer(tk.Frame):
             fg="black",
             bg=self.bg_color
         )
-        self.version_label.pack(side="top", pady=10)
+        self.version_label.pack(side="top", pady=5)
