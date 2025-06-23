@@ -22,7 +22,7 @@ class NavigationBar(tk.Frame):
             fg="black",
             bg=bg_color,
         )
-        self.submissions_btn.pack(side="left", expand=True, fill="both")
+        # self.submissions_btn.pack(side="left", expand=True, fill="both")
         self.btns.append(self.submissions_btn)
 
         self.contracts_btn = tk.Button(
@@ -32,7 +32,7 @@ class NavigationBar(tk.Frame):
             fg="black",
             bg=bg_color,
         )
-        self.contracts_btn.pack(side="left", expand=True, fill="both")
+        # self.contracts_btn.pack(side="left", expand=True, fill="both")
         self.btns.append(self.contracts_btn)
 
         self.email_btn = tk.Button(
@@ -42,6 +42,11 @@ class NavigationBar(tk.Frame):
             fg="black",
             bg=bg_color,
         )
-        self.email_btn.pack(side="left", expand=True, fill="both")
+        # self.email_btn.pack(side="left", expand=True, fill="both")
         self.btns.append(self.email_btn)
 
+        self.navbar_place_buttons()
+
+    def navbar_place_buttons(self):
+        for btn in self.btns:
+            btn.pack(side="left", expand=True, fill="both")

@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, pandas as pd
 
 from models.submissions.submissions_model import SubmissionsModel
 
@@ -21,7 +21,7 @@ class SubmissionService:
                 likely_application = file
                 
         if likely_application:
-            self.model.clean_uploads_folder()
+            self.model.clean_uploads()
             # self.reset_folder_UI()
 
         for file in extracted_files:
@@ -32,6 +32,11 @@ class SubmissionService:
             if filename == os.path.basename(likely_application):
                 self.model.selected_application_file = dest_path
             self.model.uploaded_files.append(dest_path)
+
+        return likely_application
+    
+    
+
 
     def prepare_submission(self):
         self.model.prepare_submission()
@@ -44,6 +49,15 @@ class SubmissionService:
 
         self.model.process_submission()
 
+    def prepare_full_packages(self):
+        fp_folder_path = os.path.join(self.model.drive, "csv_apps")
+        os.makedirs(fp_folder_path, exist_ok=True)
+        self.model.full_packages_folder = fp_folder_path
+
+        for field, value in self.model.afs_data.items():
+            path = os.path.join(self.model.full_packages_folder, f"{field}.csv")
+            pd.DataFrame([value[0]]).to_csv(path, index=False)
+
     def reset_model_state(self):
         self.model.uploaded_files = []
         self.model.selected_application_file = None
@@ -51,7 +65,8 @@ class SubmissionService:
         self.model.matched_folder = None
         self.model.match_score = 0
         self.model.bus_name = ""
-        self.model.clean_uploads_folder()
+        self.model.full_package = False
+        self.model.clean_uploads()
 
     def delete_file(self, file_path):
         if os.path.exists(file_path):

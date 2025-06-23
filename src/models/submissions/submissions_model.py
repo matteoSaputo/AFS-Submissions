@@ -4,10 +4,10 @@ import os
 from models.main.main_model import MainModel
 
 # Import relevant business logic modules
-from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission
+from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission, prepare_from_dict as _prepare_from_dict
 from models.utils.afs_parser import is_likely_application as _is_likely_application
 from models.utils.extract_zip import extract_zip as _extract_zip
-from models.utils.clean_uploads_folder import clean_uploads_folder as _clean_uploads_folder
+from models.utils.clean_uploads_folder import clean_uploads as _clean_uploads
 
 class SubmissionsModel(MainModel):
     def __init__(self, upload_dir):
@@ -25,6 +25,8 @@ class SubmissionsModel(MainModel):
         self.customer_folder = None
         self.matched_folder = None
         self.match_score = None
+        self.full_package = False
+        self.full_packages_folder = None
 
         # Create upload dir if it doesn't exist
         os.makedirs(self.upload_dir, exist_ok=True)
@@ -41,8 +43,11 @@ class SubmissionsModel(MainModel):
         )
     
     def prepare_submission(self):
-        self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score = _prepare_submission(self.selected_application_file, self.drive)
-        return self.afs_data, self.missing_vlaues, self.selected_application_file, self.bus_name, self.matched_folder, self.match_score
+        self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score, self.full_package = _prepare_submission(self.selected_application_file, self.drive)
+        return self.afs_data, self.missing_vlaues, self.selected_application_file, self.bus_name, self.matched_folder, self.match_score, self.full_package
+    
+    def prepare_from_dict(self):
+        return _prepare_from_dict(self.afs_data, self.drive)
     
     def is_likely_application(self, file_path):
         return _is_likely_application(file_path)
@@ -50,6 +55,6 @@ class SubmissionsModel(MainModel):
     def extract_zip(self, zip_path):
         return _extract_zip(zip_path)
     
-    def clean_uploads_folder(self):
-        return _clean_uploads_folder(self.upload_dir)
+    def clean_uploads(self):
+        return _clean_uploads(self.upload_dir)
 

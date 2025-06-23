@@ -10,8 +10,8 @@ class Footer(tk.Frame):
 
         self.version_label = tk.Label(
             self,
-            text=f"Version: {self.version}",
-            font=("Segoe UI", 13, "bold"),
+            text=f"Version {self.version}",
+            font=("Courier", 13, "bold"),
             fg="black",
             bg=self.bg_color
         )

@@ -1,7 +1,7 @@
 import os
 import shutil
 
-def clean_uploads_folder(upload_dir):
+def clean_uploads(upload_dir):
     files_to_delete =[
         f for f in os.listdir(upload_dir) if f != "keep.txt"
     ]

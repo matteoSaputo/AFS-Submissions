@@ -158,7 +158,7 @@ class SubmissionsView(tk.Frame):
             self,
             text="Clear",
             font=("Segoe UI", 14),
-            command=lambda: [controller.model.clean_uploads_folder(), controller.reset_folder_UI()],
+            command=lambda: [controller.model.clean_uploads(), controller.reset_folder_UI()],
             bg="#545151",
             fg="white",
             width=10,

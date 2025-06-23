@@ -1,3 +1,4 @@
+import pprint
 import pdfplumber
 import re
 import random
@@ -15,12 +16,17 @@ SECTION_HEADINGS = [
     "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
 ]
 CSV_HEADERS = [
-    "DBA", "Entity Type", "EIN", "Business Email", "Business Phone Number",
+    "Business Legal Name", "DBA", "Entity Type", "EIN", "Business Email", "Business Phone Number",
     "Business Fax", "Business Start Date", "Centrex ID (Hidden)", "Business Address",
     "Primary Owner Name", "Email", "Cell Phone", "SSN", "Date Of Birth",
     "Estimated Credit Score", "Ownership", "Home Address", "Business Description",
     "Purpose of Funds", "Annual Business Revenue", "Requested Funding Amount",
     "Average Monthly Credit Card Volume", "Outstanding Receivables", "Upload your statements here"
+]
+FULL_PACKAGE_HEADERS = [
+    "BUSINESS NAME", "TAX ID", "BUSINESS START DATE", "PHONE", "Mobile 1", "Mobile 2", "Email 1", 
+    "Email 2", "Email 3", "SSN", "OWNER NAME", "DATE OF BIRTH", "ADDRESS,", "CITY,", "STATE,", "Business Zip", "MONTHLY REVENUE", 
+    "Date", "Zip", "S S N"
 ]
 TODAY = str(datetime.date.today())
 
@@ -74,7 +80,10 @@ def is_likely_application(file_path):
             with open(file_path, newline='', encoding='utf-8') as csvfile:
                 reader = csv.reader(csvfile)
                 headers = next(reader)
-                return all(h in headers for h in CSV_HEADERS)
+                lower_headers = [h.lower() for h in headers]
+                lower_csv_headers = [h.lower() for h in CSV_HEADERS]
+                lower_fp_headers = [h.lower() for h in FULL_PACKAGE_HEADERS]
+                return all(h.lower() in lower_csv_headers for h in lower_headers) or all(h.lower() in lower_fp_headers for h in lower_headers)
         
         with suppress_stdout_stderr():    
             with pdfplumber.open(file_path) as pdf:
@@ -95,18 +104,41 @@ def extract_afs_data(file_path):
     ext = os.path.splitext(file_path)[1]
     afs_data = {} 
     missing_values = {}
+    full_Package = False
+
     if ext == '.pdf':
         afs_data, missing_values = extract_from_pdf(file_path)
     elif ext == '.csv':
-         afs_data, missing_values = extract_from_csv(file_path)
-    return afs_data, missing_values, ext
+        df = pd.read_csv(file_path)
+        if len(df) == 0: 
+            return None
+        elif len(df) == 1:
+            afs_data, missing_values = extract_from_csv(file_path)
+        else:
+            full_Package = True
+            df.columns = df.columns.str.lower()
+            afs_data, missing_values = extract_from_full_package_csv(df)
+    return afs_data, missing_values, ext, full_Package
+
+def extract_from_full_package_csv(df: pd.DataFrame):
+    if df.empty:
+        return None
+    afs_data = {}
+    for i in range(0, len(df)):
+        row = df.iloc[i].fillna("")
+        afs_data.update({row['business name']: extract_from_df_row(row)}) 
+    # pprint.pprint(afs_data)
+    return afs_data, None
     
 def extract_from_csv(csv_path):
     df = pd.read_csv(csv_path)
     if df.empty:
         return None
-    afs_data = {}
     row = df.iloc[0].fillna("")
+    return extract_from_df_row(row)
+
+def extract_from_df_row(row):
+    afs_data = {}
     matches = list(row.items())
     afs_data = extract_from_list(matches)
     afs_data['Date'] = TODAY
@@ -173,9 +205,11 @@ def track_missing_values(afs_data):
     missing_values = {}
 
     # Handle missing SSN
-    if not afs_data.get("S S N") or afs_data["S S N"].strip() == "":
+    if (not afs_data.get("S S N") or afs_data["S S N"].strip() == "") and (not afs_data.get("SSN") or afs_data["SSN"].strip() == "") and (not afs_data.get("Ssn") or afs_data["Ssn"].strip() == ""):
         afs_data["S S N"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
         missing_values["S S N"] = afs_data["S S N"]
+        afs_data["Ssn"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
+        missing_values["Ssn"] = afs_data["Ssn"]
 
     # Handle missing Date of Birth
     if not afs_data.get("Date Of Birth") or afs_data["Date Of Birth"].strip() == "":

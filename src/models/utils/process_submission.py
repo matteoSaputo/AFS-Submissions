@@ -12,28 +12,40 @@ from models.utils.fill_afs_from_csv import fill_afs_from_data
 import os
 import re
 
-def prepare_submission(afs_path, drive):
-    afs_data, missing_values, file_type = extract_afs_data(afs_path)
+def prepare_submission(afs_path: str, drive):
+    afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path)
+    if full_package:
+        return afs_data, None, file_type, None, None, None, full_package
+    bus_name, matched_folder, match_score = prepare_fields(
+        drive, 
+        legal_name=afs_data.get("Business Legal Name", afs_data.get("Business Name", "")),
+        dba_name=afs_data.get("DBA", "")
+    )
+    return afs_data, missing_values, file_type, bus_name, matched_folder, match_score, full_package
 
+def prepare_fields(drive, legal_name, dba_name):
     # Create a cleaned business name
-    if not afs_data.get("Business Legal Name") and afs_data.get("DBA"):
-        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
+    if not legal_name and dba_name:
+        bus_name = re.sub(r'[\\/*?:."<>|]', "", dba_name)
     else:
-        bus_name = re.sub(r'[\\/*?:."<>|]', "", afs_data["Business Legal Name"])
+        bus_name = re.sub(r'[\\/*?:."<>|]', "", legal_name)
 
-    if afs_data.get("DBA"):
-        dba = re.sub(r'[\\/*?:."<>|]', "", afs_data["DBA"])
+    if dba_name:
+        dba = re.sub(r'[\\/*?:."<>|]', "", dba_name)
         bus_name = generate_business_name(bus_name, dba)
 
     # Suggest a folder match but don't make it yet
     matched_folder, match_score = find_matching_folder(
         bus_name,
         drive,
-        legal_name=afs_data.get("Business Legal Name", ""),
-        dba_name=afs_data.get("DBA", "")
+        legal_name,
+        dba_name
     )
 
-    return afs_data, missing_values, file_type, bus_name, matched_folder, match_score
+    return bus_name, matched_folder, match_score
+
+def prepare_from_dict(afs_path: dict, drive):
+    print("polymorphism is kool")
 
 
 def process_submission(upload_path, attatchements, afs_data, missing_values, file_type, bus_name, customer_folder):

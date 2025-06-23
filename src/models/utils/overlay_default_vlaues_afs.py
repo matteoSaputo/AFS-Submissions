@@ -10,7 +10,8 @@ def overlay_default_values_afs(input_path, output_path, missing_data):
 
     # Define positions
     field_coords = {
-        "S S N": (65, 280),                 
+        "S S N": (65, 280),  
+        "Ssn": (65, 280),                                
         "Date Of Birth": (305, 280),
         "Business Start Date": (325, 180)
     }

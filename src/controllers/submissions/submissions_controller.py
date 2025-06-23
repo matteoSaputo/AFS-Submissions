@@ -1,8 +1,10 @@
+import time
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
 import os
 import threading
+import re
 
 # Import model and view
 from controllers.services.submissions_service import SubmissionService
@@ -90,24 +92,55 @@ class SubmissionsController:
             self.reset_folder_UI()      
         self.update_file_display()
 
+    def process(self, file_list):          
+        self.service.handle_files(file_list)
+        self.update_file_display()
+
+        if not self.model.selected_application_file:
+            self.hide_spinner()
+            return
+        
+        self.start_submission()
+
     def handle_files(self, file_list):
         self.show_spinner()
-
-        def process():          
-            self.service.handle_files(file_list)
-            self.update_file_display()
-
-            if not self.model.selected_application_file:
-                self.hide_spinner()
-                return
-            
-            self.start_submission()
-
-        threading.Thread(target=process).start()
+        threading.Thread(target=lambda: self.process(file_list)).start()
 
     def start_submission(self):
-        try:
-            self.service.prepare_submission()
+        # try:
+            if not self.model.full_package:
+                self.service.prepare_submission()
+            if self.model.full_package:
+                #start submission for full package
+                self.service.prepare_full_packages()
+                self.model.full_package = False
+                self.model.clean_uploads()
+                self.update_file_display()
+                full_packages = os.listdir(self.model.full_packages_folder)
+                statements_folder = filedialog.askdirectory(title="Select Folder for full packages bank statements")
+                for csv in full_packages:
+                    path = os.path.join(self.model.full_packages_folder, csv)
+                    files = [path]
+                    if statements_folder:
+                        name = os.path.splitext(csv)[0]
+                        statements = os.path.abspath(os.path.join(statements_folder, name))
+                        def clean_path(path):
+                            return re.sub(r'[\xa0\u200b]', '', path).strip()
+                        statements = clean_path(statements)
+                        for f in os.listdir(statements):
+                            statement_path = os.path.abspath(os.path.join(statements_folder, f"{os.path.splitext(csv)[0].strip()}/{f}"))
+                            print(statement_path)
+                            files.append(statement_path)
+                    self.process(files)
+                    self.finalize_submission(use_existing=False)
+                    os.remove(path)
+                    print(path)
+                    while self.model.selected_application_file:
+                        time.sleep(0.1)
+                return
+                
+                    # os.remove(path)
+                # os.remove(self.model.full_packages_folder)
 
             if self.model.matched_folder:
                 self.view.match_label.config(
@@ -123,10 +156,10 @@ class SubmissionsController:
             self.view.match_label.pack(pady=20)
             self.view.folder_button_frame.pack(pady=10)
 
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+        # except Exception as e:
+        #     messagebox.showerror("Error", str(e))
             
-        finally:
+        # finally:
             self.hide_spinner()
 
     def confirm_folder(self):
@@ -138,7 +171,7 @@ class SubmissionsController:
     def finalize_submission(self, use_existing):
         # try:
             self.service.finalize_submission(use_existing)
-            messagebox.showinfo("Success", "Submission processed successfully!")
+            # messagebox.showinfo("Success", "Submission processed successfully!")
             self.reset_folder_UI()
         # except Exception as e:
         #     messagebox.showerror("Error", f"Failed to process: {str(e)}")
