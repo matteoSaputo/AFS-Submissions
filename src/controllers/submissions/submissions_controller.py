@@ -107,7 +107,7 @@ class SubmissionsController:
         threading.Thread(target=lambda: self.process(file_list)).start()
 
     def start_submission(self):
-        # try:
+        try:
             if not self.model.full_package:
                 self.service.prepare_submission()
             if self.model.full_package:
@@ -153,11 +153,11 @@ class SubmissionsController:
             self.view.match_label.pack(pady=20)
             self.view.folder_button_frame.pack(pady=10)
 
-        # except Exception as e:
-        #     messagebox.showerror("Error", str(e))
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
             
-        # finally:
-        #     self.hide_spinner()
+        finally:
+            self.hide_spinner()
 
     def confirm_folder(self):
         self.finalize_submission(use_existing=True)
@@ -166,12 +166,12 @@ class SubmissionsController:
         self.finalize_submission(use_existing=False)
 
     def finalize_submission(self, use_existing):
-        # try:
+        try:
             self.service.finalize_submission(use_existing)
-            # messagebox.showinfo("Success", "Submission processed successfully!")
+            messagebox.showinfo("Success", "Submission processed successfully!")
             self.reset_folder_UI()
-        # except Exception as e:
-        #     messagebox.showerror("Error", f"Failed to process: {str(e)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to process: {str(e)}")
 
     def reset_folder_UI(self):
         self.view.upload_btn.place(relx=0.5, rely=0.5, anchor="center")

@@ -10,6 +10,7 @@ a = Analysis(
         ('data/fonts/*', 'data/fonts'),
         ('data/data/*', 'data/data'),
         ('assets/*', 'assets'),
+        ('assets/cats/*', 'assets/cats'),
         ('info/*', 'info')
     ],    
     hiddenimports=collect_submodules('numpy'),
@@ -35,7 +36,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
