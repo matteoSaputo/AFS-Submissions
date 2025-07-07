@@ -1,10 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+from PyInstaller.utils.hooks import collect_submodules, collect_dynamic_libs
 
 a = Analysis(
     ['src/main.py'],
     pathex=['.', 'src'],
-    binaries=[],
+    binaries=collect_dynamic_libs('numpy'),
     datas=[
         ('data/uploads/*', 'data/uploads'),
         ('data/fonts/*', 'data/fonts'),
@@ -12,8 +12,8 @@ a = Analysis(
         ('assets/*', 'assets'),
         ('info/*', 'info')
     ],    
-    hiddenimports=[],
-    hookspath=[],
+    hiddenimports=collect_submodules('numpy'),
+    hookspath=['venv/Lib/site-packages/pyinstaller_hooks_contrib/hooks'],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
@@ -35,7 +35,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
