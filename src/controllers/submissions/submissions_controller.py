@@ -138,9 +138,6 @@ class SubmissionsController:
                     while self.model.selected_application_file:
                         time.sleep(0.1)
                 return
-                
-                    # os.remove(path)
-                # os.remove(self.model.full_packages_folder)
 
             if self.model.matched_folder:
                 self.view.match_label.config(
@@ -160,7 +157,7 @@ class SubmissionsController:
         #     messagebox.showerror("Error", str(e))
             
         # finally:
-            self.hide_spinner()
+        #     self.hide_spinner()
 
     def confirm_folder(self):
         self.finalize_submission(use_existing=True)

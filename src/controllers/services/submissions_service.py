@@ -1,4 +1,6 @@
-import os, shutil, pandas as pd
+import os 
+import shutil 
+import pandas as pd
 
 from models.submissions.submissions_model import SubmissionsModel
 
@@ -22,7 +24,6 @@ class SubmissionService:
                 
         if likely_application:
             self.model.clean_uploads()
-            # self.reset_folder_UI()
 
         for file in extracted_files:
             filename = os.path.basename(file)
@@ -34,9 +35,6 @@ class SubmissionService:
             self.model.uploaded_files.append(dest_path)
 
         return likely_application
-    
-    
-
 
     def prepare_submission(self):
         self.model.prepare_submission()
