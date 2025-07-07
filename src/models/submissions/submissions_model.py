@@ -4,7 +4,7 @@ import os
 from models.main.main_model import MainModel
 
 # Import relevant business logic modules
-from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission, prepare_from_dict as _prepare_from_dict
+from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission
 from models.utils.afs_parser import is_likely_application as _is_likely_application
 from models.utils.extract_zip import extract_zip as _extract_zip
 from models.utils.clean_uploads_folder import clean_uploads as _clean_uploads
@@ -45,9 +45,6 @@ class SubmissionsModel(MainModel):
     def prepare_submission(self):
         self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score, self.full_package = _prepare_submission(self.selected_application_file, self.drive)
         return self.afs_data, self.missing_vlaues, self.selected_application_file, self.bus_name, self.matched_folder, self.match_score, self.full_package
-    
-    def prepare_from_dict(self):
-        return _prepare_from_dict(self.afs_data, self.drive)
     
     def is_likely_application(self, file_path):
         return _is_likely_application(file_path)

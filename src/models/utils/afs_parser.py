@@ -9,26 +9,75 @@ import csv
 import pandas as pd
 import datetime
 
+TODAY = str(datetime.date.today())
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"
 ]
 SECTION_HEADINGS = [
     "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
 ]
-CSV_HEADERS = [
-    "Business Legal Name", "DBA", "Entity Type", "EIN", "Business Email", "Business Phone Number",
-    "Business Fax", "Business Start Date", "Centrex ID (Hidden)", "Business Address",
-    "Primary Owner Name", "Email", "Cell Phone", "SSN", "Date Of Birth",
-    "Estimated Credit Score", "Ownership", "Home Address", "Business Description",
-    "Purpose of Funds", "Annual Business Revenue", "Requested Funding Amount",
-    "Average Monthly Credit Card Volume", "Outstanding Receivables", "Upload your statements here"
+CSV_KEYWORDS = [
+    "Business", "Owner"
 ]
-FULL_PACKAGE_HEADERS = [
-    "BUSINESS NAME", "TAX ID", "BUSINESS START DATE", "PHONE", "Mobile 1", "Mobile 2", "Email 1", 
-    "Email 2", "Email 3", "SSN", "OWNER NAME", "DATE OF BIRTH", "ADDRESS,", "CITY,", "STATE,", "Business Zip", "MONTHLY REVENUE", 
-    "Date", "Zip", "S S N"
+FIELD_MAPPING = [
+    (["Business Legal Name", "LegalCorporate Name"], ["business name", "business legal name"]),
+    (["DBA"], ["dba"]),
+    (["Entity Type", "Type of Entity LLC INC Sole Prop"], ["entity type"]),
+    (["Federal TaxID", "Federal Tax ID"], ["tax id", "ein", "e i n", "federal tax-id", "federal taxid", "federal tax id", "federal tax-i d", "federal tax i d"]),
+    (["Address", "Business Address"], ["business address", "address", "address,", "business address street", "address street", "address street,", "business address: address line 1"]),
+    (["City"], ["city", "city,", "business city", "business city,", "business address: city"]),
+    (["State", "State of Incorporation"], ["state", "state,", "business state", "business state,", "business address: state"]),
+    (["Zip", "Zip Code"], ["zip", "business zip", "business address: zip/postal code"]),
+    (["Business Start Date", "Date Business Started"], ["business start date", "start date"]),
+    (["Monthly Gross Revenue", "Annual Business Revenue"], ["monthly revenue", "annual business revenue"]),
+    (["Primary Owner Name", "Corporate OfficerOwner Name", "Print Name"], ["owner name", "primary owner name", "primary owner name: first"]),
+    (["SSN", "Social Sec"], ["ssn", "ssn ", "ssn  ", "s s n", "social", "social security number"]),
+    (["Ownership %", "Ownership"], ["ownership", "ownership %"]),
+    (["Date of Birth"], ["date of birth", "birth date"]),
+    (["eMail"], ["business email", "email 1"]),
+    (["Personal eMail"], ["email", "email 2"]),
+    (["Personal Fax"], ["email 3"]),
+    (["Fax"], ["mobile 1"]),
+    (["Phone"], ["mobile"]),
+    (["Mobile Phone"], ["mobile 2", "cell phone"]),
+    (["Estimated FICO Score"], ["estimated credit score"]),
+    (["Purpose of Funds"], ["purpose of funds"]),
+    (["Address_2", "Busin ss Address"], ["home address", "home address,", "home address street", "home address street,", "home address: address line 1"]),
+    (["City_2"], ["home city", "home address: city"]),
+    (["State_2"], ["home state", "home address: state"]),
+    (["Zip_2", "Zip Code_2"], ["home zip", "home address: zip/postal Code"]),
+    (["Date", "Date_2"], ["date"]),
+    (["Business Description", "Describe your Business"], ["business description"]),
+    (["Requested Funding Amount", "How much cash funding are you applying for"], ["requested funding amount"]),
+    (["Average Monthly Credit Card Volume", "CC Processing Monthly Volume"], ["average monthly credit card volume"]),
+    (["Outstanding Receivables"], ["outstanding receivables"])
 ]
-TODAY = str(datetime.date.today())
+
+def normalize_key(key: str):
+    return key.strip().replace(",", "").replace("\xa0", "").lower()
+
+def map_fields(raw_data: dict):
+    normalized_data = {normalize_key(k): v for k, v in raw_data.items()}
+    result = {}
+
+    for output_fields, input_aliases in FIELD_MAPPING:
+        matched_value = None
+        for alias in input_aliases:
+            norm_alias = normalize_key(alias)
+            if norm_alias in normalized_data:
+                matched_value = normalized_data[norm_alias]
+                break  # Stop on first match
+
+        if matched_value:
+            for out_field in output_fields:
+                result[out_field] = matched_value
+
+    result["Title"] = "CEO"
+    result["Primary Owner Name"] += raw_data.get("Primary Owner Name: Last", "")
+
+    pprint.pprint(raw_data)
+    pprint.pprint(result)
+    return result 
 
 def normalize_field_name(field):
     # Insert space before capital letters that follow lowercase or other capitals
@@ -76,14 +125,11 @@ def is_likely_application(file_path):
                 sys.stderr = old_stderr
                 
     try:
-        if file_path.lower().endswith(".csv"):
+        if file_path.lower().endswith(".csv"): 
             with open(file_path, newline='', encoding='utf-8') as csvfile:
                 reader = csv.reader(csvfile)
                 headers = next(reader)
-                lower_headers = [h.lower() for h in headers]
-                lower_csv_headers = [h.lower() for h in CSV_HEADERS]
-                lower_fp_headers = [h.lower() for h in FULL_PACKAGE_HEADERS]
-                return all(h.lower() in lower_csv_headers for h in lower_headers) or all(h.lower() in lower_fp_headers for h in lower_headers)
+                return any(keyword.lower() in header.lower() for header in headers for keyword in CSV_KEYWORDS) 
         
         with suppress_stdout_stderr():    
             with pdfplumber.open(file_path) as pdf:
@@ -100,6 +146,7 @@ def is_likely_application(file_path):
 
 def extract_afs_data(file_path):
     if not is_likely_application(file_path):
+        print("Not likely Application")
         return None
     ext = os.path.splitext(file_path)[1]
     afs_data = {} 
@@ -110,29 +157,31 @@ def extract_afs_data(file_path):
         afs_data, missing_values = extract_from_pdf(file_path)
     elif ext == '.csv':
         df = pd.read_csv(file_path)
-        if len(df) == 0: 
+        if len(df) == 0:
+            print("Empty dataframe 1")
             return None
         elif len(df) == 1:
             afs_data, missing_values = extract_from_csv(file_path)
         else:
             full_Package = True
-            df.columns = df.columns.str.lower()
             afs_data, missing_values = extract_from_full_package_csv(df)
-    return afs_data, missing_values, ext, full_Package
+    return afs_data if full_Package else map_fields(afs_data), missing_values, ext, full_Package
 
 def extract_from_full_package_csv(df: pd.DataFrame):
+    df.columns = df.columns.str.lower()
     if df.empty:
+        print("Empty dataframe 2")
         return None
     afs_data = {}
     for i in range(0, len(df)):
         row = df.iloc[i].fillna("")
         afs_data.update({row['business name']: extract_from_df_row(row)}) 
-    # pprint.pprint(afs_data)
     return afs_data, None
     
 def extract_from_csv(csv_path):
     df = pd.read_csv(csv_path)
     if df.empty:
+        print("Empty dataframe 3")
         return None
     row = df.iloc[0].fillna("")
     return extract_from_df_row(row)
@@ -145,9 +194,6 @@ def extract_from_df_row(row):
     return afs_data, track_missing_values(afs_data)
 
 def extract_from_pdf(pdf_path):
-    if not is_likely_application(pdf_path):
-        return None
-    
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
         for page in pdf.pages:
@@ -188,16 +234,20 @@ def extract_from_list(list):
 
         if 'Address' in normalized_field and '\n' in value:
             address = value.split('\n')[:-1]
-            street, city_state, zip_code = address
+            if len(address) == 3:
+                street, city_state, zip_code = address
+            else:
+                street, suite, city_state, zip_code = address
+                street = " ".join([street, suite])
             city, state = city_state.split(", ")
             address_mapping = {
                 "Address": street, "City": city, "State": state, "Zip": zip_code
             }
             for address_field, address_value in address_mapping.items():
                 afs_data.update(split_inline_fields(f"{current_section} {address_field}", address_value, INLINE_SUBFIELDS))
-            continue
-
-        afs_data.update(split_inline_fields(normalized_field, value, INLINE_SUBFIELDS))
+        else:
+            afs_data.update(split_inline_fields(normalized_field, value, INLINE_SUBFIELDS))
+    
     return afs_data
 
 def track_missing_values(afs_data):
@@ -213,8 +263,11 @@ def track_missing_values(afs_data):
 
     # Handle missing Date of Birth
     if not afs_data.get("Date Of Birth") or afs_data["Date Of Birth"].strip() == "":
-        afs_data["Date Of Birth"] = "01/01/1980"
-        missing_values["Date Of Birth"] = afs_data["Date Of Birth"]
+        if afs_data.get("Birth Date"):
+            afs_data["Date Of Birth"] = afs_data.get("Birth Date")
+        else:
+            afs_data["Date Of Birth"] = "01/01/1980"
+            missing_values["Date Of Birth"] = afs_data["Date Of Birth"]
 
     # Handle missing Business Start Date
     if not afs_data.get("Business Start Date") or afs_data["Business Start Date"].strip() == "":

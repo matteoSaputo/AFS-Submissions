@@ -1,5 +1,4 @@
 from models.utils.afs_parser import extract_afs_data
-from models.utils.fill_nrs import fill_nrs
 from models.utils.overlay_default_vlaues_afs import overlay_default_values_afs
 from models.utils.redact_contact_info import redact_contact_info
 from models.utils.find_matching_folder import find_matching_folder
@@ -7,10 +6,13 @@ from models.utils.generate_business_name import generate_business_name
 from models.utils.resource_path import resource_path
 from models.utils.migrate_to_drive import migrate_to_drive
 from models.utils.flatten_pdf import flatten_pdf
-from models.utils.fill_afs_from_csv import fill_afs_from_data
+from models.utils.fill_template import fill_pdf
 
 import os
 import re
+
+AFS_TEMPLATE = resource_path("data\data\AFS Application (Fillable).pdf")
+NRS_TEMPLATE = resource_path("data/data/NRS Funding Application.pdf")
 
 def prepare_submission(afs_path: str, drive):
     afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path)
@@ -44,11 +46,7 @@ def prepare_fields(drive, legal_name, dba_name):
 
     return bus_name, matched_folder, match_score
 
-def prepare_from_dict(afs_path: dict, drive):
-    print("polymorphism is kool")
-
-
-def process_submission(upload_path, attatchements, afs_data, missing_values, file_type, bus_name, customer_folder):
+def process_submission(upload_path, attatchements: list, afs_data, missing_values, file_type, bus_name, customer_folder):
     """
     Takes in:
     - upload_path: path to uploaded PDF (e.g., "./data/uploads/document.pdf")
@@ -63,10 +61,20 @@ def process_submission(upload_path, attatchements, afs_data, missing_values, fil
     nrs_application = resource_path(f"data/uploads/NRS Funding Application - {bus_name}.pdf")
 
     attatchements.remove(upload_path)
+
     if file_type == '.pdf' and overlay_default_values_afs(upload_path, 'temp_path.pdf', missing_values):
         os.replace('temp_path.pdf', upload_path)
+
     if file_type == '.csv':
-        attatchements.append(fill_afs_from_data(afs_data, business_application))
+        attatchements.append(
+            fill_pdf(
+                afs_data, 
+                business_application, 
+                AFS_TEMPLATE, 
+                (180, 575, 360, 675),
+                flatten=True
+            )
+        )
     else:
         attatchements.append(flatten_pdf(upload_path, business_application))
 
@@ -76,8 +84,9 @@ def process_submission(upload_path, attatchements, afs_data, missing_values, fil
     # Save a copy of the AFS app WITHOUT contact info
     attatchements.append(redact_contact_info(business_application, business_sub_application))
 
-    # Fill and save NRS Application
-    attatchements.append(fill_nrs(afs_data, nrs_application))
+    # Fill and save NRS Application if not CA or VA
+    if afs_data["State"].lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
+        attatchements.append(fill_pdf(afs_data, nrs_application, NRS_TEMPLATE, (120, 705, 300, 805), flatten=False))
 
     # Move bank statements and other attatchements
     migrate_to_drive(attatchements, customer_folder)
