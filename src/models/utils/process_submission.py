@@ -20,7 +20,7 @@ def prepare_submission(afs_path: str, drive):
         return afs_data, None, file_type, None, None, None, full_package
     bus_name, matched_folder, match_score = prepare_fields(
         drive, 
-        legal_name=afs_data.get("Business Legal Name", afs_data.get("Business Name", "")),
+        legal_name=afs_data.get("Business Legal Name", ""),
         dba_name=afs_data.get("DBA", "")
     )
     return afs_data, missing_values, file_type, bus_name, matched_folder, match_score, full_package
@@ -62,8 +62,8 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
 
     attatchements.remove(upload_path)
 
-    if file_type == '.pdf' and overlay_default_values_afs(upload_path, 'temp_path.pdf', missing_values):
-        os.replace('temp_path.pdf', upload_path)
+    if file_type == '.pdf' and overlay_default_values_afs(upload_path, resource_path('temp_path.pdf'), missing_values):
+        os.replace(resource_path('temp_path.pdf'), upload_path)
 
     if file_type == '.csv':
         attatchements.append(
@@ -85,7 +85,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     attatchements.append(redact_contact_info(business_application, business_sub_application))
 
     # Fill and save NRS Application if not CA or VA
-    if afs_data["State"].lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
+    if afs_data.get("State", "").lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
         attatchements.append(fill_pdf(afs_data, nrs_application, NRS_TEMPLATE, (120, 705, 300, 805), flatten=False))
 
     # Move bank statements and other attatchements

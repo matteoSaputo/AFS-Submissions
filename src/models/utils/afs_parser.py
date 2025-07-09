@@ -33,7 +33,7 @@ FIELD_MAPPING = [
     (["Primary Owner Name", "Corporate OfficerOwner Name", "Print Name"], ["owner name", "primary owner name", "primary owner name: first"]),
     (["SSN", "Social Sec"], ["ssn", "ssn ", "ssn  ", "s s n", "social", "social security number"]),
     (["Ownership %", "Ownership"], ["ownership", "ownership %"]),
-    (["Date of Birth"], ["date of birth", "birth date"]),
+    (["Date of Birth", "Date Of Birth"], ["date of birth", "birth date"]),
     (["eMail"], ["business email", "email 1"]),
     (["Personal eMail"], ["email", "email 2"]),
     (["Personal Fax"], ["email 3"]),
@@ -52,13 +52,22 @@ FIELD_MAPPING = [
     (["Average Monthly Credit Card Volume", "CC Processing Monthly Volume"], ["average monthly credit card volume"]),
     (["Outstanding Receivables"], ["outstanding receivables"])
 ]
+DEFAULT_VALUES = {
+    "SSN": f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}",
+    "Date of Birth": "01/01/1980",
+    "Business Start Date": "01/01/2020" 
+}
 
 def normalize_key(key: str):
     return key.strip().replace(",", "").replace("\xa0", "").lower()
 
-def map_fields(raw_data: dict):
+def map_fields(raw_data: dict, full_package: bool):
+    if full_package:
+        return raw_data, None
+
     normalized_data = {normalize_key(k): v for k, v in raw_data.items()}
     result = {}
+    missing = {}
 
     for output_fields, input_aliases in FIELD_MAPPING:
         matched_value = None
@@ -68,16 +77,20 @@ def map_fields(raw_data: dict):
                 matched_value = normalized_data[norm_alias]
                 break  # Stop on first match
 
-        if matched_value:
-            for out_field in output_fields:
-                result[out_field] = matched_value
+        for out_field in output_fields:            
+            if not matched_value or matched_value.strip() == "":
+                matched_value = DEFAULT_VALUES.get(out_field, None)
+                missing[out_field] = DEFAULT_VALUES.get(out_field, None)
 
+        for out_field in output_fields:            
+            result[out_field] = matched_value
+    
+    result["Business Legal Name"] = truncate_name_at_word(result["Business Legal Name"])
+    result['Date'] = TODAY
     result["Title"] = "CEO"
     result["Primary Owner Name"] += raw_data.get("Primary Owner Name: Last", "")
 
-    pprint.pprint(raw_data)
-    pprint.pprint(result)
-    return result 
+    return result, missing
 
 def normalize_field_name(field):
     # Insert space before capital letters that follow lowercase or other capitals
@@ -150,22 +163,22 @@ def extract_afs_data(file_path):
         return None
     ext = os.path.splitext(file_path)[1]
     afs_data = {} 
-    missing_values = {}
     full_Package = False
 
     if ext == '.pdf':
-        afs_data, missing_values = extract_from_pdf(file_path)
+        afs_data = extract_from_pdf(file_path)
     elif ext == '.csv':
         df = pd.read_csv(file_path)
         if len(df) == 0:
             print("Empty dataframe 1")
             return None
         elif len(df) == 1:
-            afs_data, missing_values = extract_from_csv(file_path)
+            afs_data = extract_from_csv(file_path)
         else:
             full_Package = True
-            afs_data, missing_values = extract_from_full_package_csv(df)
-    return afs_data if full_Package else map_fields(afs_data), missing_values, ext, full_Package
+            afs_data = extract_from_full_package_csv(df)
+    afs_data, missing_values = map_fields(afs_data, full_Package)
+    return afs_data, missing_values, ext, full_Package
 
 def extract_from_full_package_csv(df: pd.DataFrame):
     df.columns = df.columns.str.lower()
@@ -176,7 +189,7 @@ def extract_from_full_package_csv(df: pd.DataFrame):
     for i in range(0, len(df)):
         row = df.iloc[i].fillna("")
         afs_data.update({row['business name']: extract_from_df_row(row)}) 
-    return afs_data, None
+    return afs_data
     
 def extract_from_csv(csv_path):
     df = pd.read_csv(csv_path)
@@ -191,7 +204,7 @@ def extract_from_df_row(row):
     matches = list(row.items())
     afs_data = extract_from_list(matches)
     afs_data['Date'] = TODAY
-    return afs_data, track_missing_values(afs_data)
+    return afs_data
 
 def extract_from_pdf(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
@@ -209,12 +222,7 @@ def extract_from_pdf(pdf_path):
 
     afs_data = extract_from_list(matches)
 
-    # Limit Business Name to 30 characters
-    afs_data["Business Legal Name"] = truncate_name_at_word(afs_data["Business Legal Name"])
-
-    afs_data['Date'] = TODAY
-
-    return afs_data, track_missing_values(afs_data)
+    return afs_data
 
 def extract_from_list(list):
     # Track what section we're in
@@ -250,28 +258,32 @@ def extract_from_list(list):
     
     return afs_data
 
-def track_missing_values(afs_data):
+def track_missing_values(afs_data: dict):
     # Track which values were missing
     missing_values = {}
 
-    # Handle missing SSN
-    if (not afs_data.get("S S N") or afs_data["S S N"].strip() == "") and (not afs_data.get("SSN") or afs_data["SSN"].strip() == "") and (not afs_data.get("Ssn") or afs_data["Ssn"].strip() == ""):
-        afs_data["S S N"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
-        missing_values["S S N"] = afs_data["S S N"]
-        afs_data["Ssn"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
-        missing_values["Ssn"] = afs_data["Ssn"]
+    for key, value in afs_data.items():
+        if not value or value.strip() == "":
+            missing_values[key] = None
 
-    # Handle missing Date of Birth
-    if not afs_data.get("Date Of Birth") or afs_data["Date Of Birth"].strip() == "":
-        if afs_data.get("Birth Date"):
-            afs_data["Date Of Birth"] = afs_data.get("Birth Date")
-        else:
-            afs_data["Date Of Birth"] = "01/01/1980"
-            missing_values["Date Of Birth"] = afs_data["Date Of Birth"]
+    # # Handle missing SSN
+    # if not missing_values.get("SSN"):
+    #     result_afs_data["SSN"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
+    #     missing_values["SSN"] = result_afs_data["SSN"]
 
-    # Handle missing Business Start Date
-    if not afs_data.get("Business Start Date") or afs_data["Business Start Date"].strip() == "":
-        afs_data["Business Start Date"] = "01/01/2020"
-        missing_values["Business Start Date"] = afs_data["Business Start Date"]
+    # # Handle missing Date of Birth
+    # if not afs_data.get("Date Of Birth") or afs_data["Date Of Birth"].strip() == "":
+    #     if afs_data.get("Birth Date"):
+    #         afs_data["Date Of Birth"] = afs_data.get("Birth Date")
+    #     else:
+    #         afs_data["Date Of Birth"] = "01/01/1980"
+    #         missing_values["Date Of Birth"] = afs_data["Date Of Birth"]
+
+    # # Handle missing Business Start Date
+    # if not afs_data.get("Business Start Date") or afs_data["Business Start Date"].strip() == "":
+    #     afs_data["Business Start Date"] = "01/01/2020"
+    #     missing_values["Business Start Date"] = afs_data["Business Start Date"]
+    
+    pprint.pprint(missing_values)
 
     return missing_values

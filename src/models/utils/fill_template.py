@@ -23,7 +23,8 @@ def fill_pdf(afs_data: dict, output_path, template_path, sig_coords: tuple, flat
                         field_name = field[1:-1].strip()  # strip parentheses and blanks
                         if field_name in afs_data:
                             value = afs_data[field_name]
-                            annotation.update(PdfDict(V=PdfString.encode(value)))
+                            if value:
+                                annotation.update(PdfDict(V=PdfString.encode(value)))
 
     PdfWriter().write(resource_path("temp.pdf"), pdf)
 
