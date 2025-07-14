@@ -36,7 +36,7 @@ echo %VERSION% > "%VERSION_FILE%"
 
 :: === Build the executable ===
 echo Building executable...
-@REM pyinstaller --noconfirm AFS-Submissions-Tool.spec
+pyinstaller --noconfirm AFS-Submissions-Tool.spec
 
 IF %ERRORLEVEL% NEQ 0 (
     echo Build failed.
@@ -55,14 +55,14 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: === Copy to Google Drive (overwrite) ===
-@REM echo Copying to Google Drive...
-@REM copy /y "dist\AFS-Submissions-Tool.exe" "%DRIVE_PATH%\%FINAL_NAME%.exe"
+echo Copying to Google Drive...
+copy /y "dist\AFS-Submissions-Tool.exe" "%DRIVE_PATH%\%FINAL_NAME%.exe"
 
-@REM IF %ERRORLEVEL% NEQ 0 (
-@REM     echo Failed to copy to Google Drive.
-@REM     pause
-@REM     exit /b %ERRORLEVEL%
-@REM )
+IF %ERRORLEVEL% NEQ 0 (
+    echo Failed to copy to Google Drive.
+    pause
+    exit /b %ERRORLEVEL%
+)
 
 echo Deployment complete!
 exit /b 0
