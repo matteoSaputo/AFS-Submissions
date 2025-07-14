@@ -13,7 +13,7 @@ def redact_contact_info(input_path, output_path):
     patterns = [
         r"\(?\d{3}\)?[\s\-\.]?\d{3}[\s\-\.]?\d{4}\b", # very flexible phone numbers
         r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",  # emails
-        r"(?i)\bfax[: ]*"                            # case-insensitive "fax"
+        # r"(?i)\bfax[: ]*"                            # case-insensitive "fax"
     ]
 
     compiled_patterns = [re.compile(p) for p in patterns]
