@@ -8,7 +8,7 @@ a = Analysis(
     datas=[
         ('data/uploads/*', 'data/uploads'),
         ('data/fonts/*', 'data/fonts'),
-        ('data/data/*', 'data/data'),
+        ('data/templates/*', 'data/templates'),
         ('assets/*', 'assets'),
         ('assets/cats/*', 'assets/cats'),
         ('info/*', 'info')
