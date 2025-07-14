@@ -11,8 +11,9 @@ from models.utils.fill_template import fill_pdf
 import os
 import re
 
-AFS_TEMPLATE = resource_path("data\data\AFS Application (Fillable).pdf")
-NRS_TEMPLATE = resource_path("data/data/NRS Funding Application.pdf")
+AFS_TEMPLATE = resource_path("data/templates/AFS Application (Fillable).pdf")
+NRS_TEMPLATE = resource_path("data/templates/NRS Funding Application.pdf")
+ARF_TEMPLATE = resource_path("data/templates/ARF Stella Application.pdf")
 
 def prepare_submission(afs_path: str, drive):
     afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path)
@@ -59,6 +60,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     business_application = resource_path(f"data/uploads/Business Application - {bus_name}.pdf")
     business_sub_application = resource_path(f"data/uploads/Business Sub Application - {bus_name}.pdf")
     nrs_application = resource_path(f"data/uploads/NRS Funding Application - {bus_name}.pdf")
+    arf_application = resource_path(f"data/uploads/ARF Stella Application - {bus_name}.pdf")
 
     attatchements.remove(upload_path)
 
@@ -85,8 +87,27 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     attatchements.append(redact_contact_info(business_application, business_sub_application))
 
     # Fill and save NRS Application if not CA or VA
-    if afs_data.get("State", "").lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
-        attatchements.append(fill_pdf(afs_data, nrs_application, NRS_TEMPLATE, (120, 705, 300, 805), flatten=False))
+    if not afs_data["State"] or afs_data.get("State", "").lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
+        attatchements.append(
+            fill_pdf(
+                afs_data, 
+                nrs_application, 
+                NRS_TEMPLATE, 
+                (120, 705, 300, 805), 
+                flatten=False
+            )
+        )
+
+    # Fill and save ARF Application
+    attatchements.append(
+        fill_pdf(
+            afs_data,
+            arf_application,
+            ARF_TEMPLATE,
+            (120, 675, 300, 775),
+            flatten=False
+        )
+    )
 
     # Move bank statements and other attatchements
     migrate_to_drive(attatchements, customer_folder)
