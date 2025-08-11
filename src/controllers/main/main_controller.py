@@ -32,7 +32,7 @@ class MainController:
         self.submissions_btn = self.navbar.submissions_btn
         self.bind_navbar_btn(self.submissions_btn, self.submissions_view)
 
-        self.contracts_controller = ContractsController(self.view, BG_COLOR)
+        self.contracts_controller = ContractsController(self.view, BG_COLOR, DND_BG_COLOR)
         self.contracts_view = self.contracts_controller.view
         self.contracts_btn = self.navbar.contracts_btn
         self.bind_navbar_btn(self.contracts_btn, self.contracts_view)

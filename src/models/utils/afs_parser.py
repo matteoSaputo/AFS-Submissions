@@ -88,7 +88,7 @@ def map_fields(raw_data: dict, full_package: bool):
     result["Business Legal Name"] = truncate_name_at_word(result["Business Legal Name"])
     result['Date'] = TODAY
     result["Title"] = "CEO"
-    result["Primary Owner Name"] += raw_data.get("Primary Owner Name: Last", "")
+    result["Primary Owner Name"] = result.get("Primary Owner Name", "") + raw_data.get("Primary Owner Name: Last", "")
 
     return result, missing
 
