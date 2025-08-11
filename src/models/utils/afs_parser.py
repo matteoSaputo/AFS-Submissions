@@ -88,7 +88,8 @@ def map_fields(raw_data: dict, full_package: bool):
     result["Business Legal Name"] = truncate_name_at_word(result["Business Legal Name"])
     result['Date'] = TODAY
     result["Title"] = "CEO"
-    result["Primary Owner Name"] = result.get("Primary Owner Name", "") + raw_data.get("Primary Owner Name: Last", "")
+    result["Primary Owner Name"] = f"{result.get('Primary Owner Name', '')} {raw_data.get('Primary Owner Name: Last', '')}"
+
 
     return result, missing
 
@@ -265,24 +266,6 @@ def track_missing_values(afs_data: dict):
     for key, value in afs_data.items():
         if not value or value.strip() == "":
             missing_values[key] = None
-
-    # # Handle missing SSN
-    # if not missing_values.get("SSN"):
-    #     result_afs_data["SSN"] = f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}"
-    #     missing_values["SSN"] = result_afs_data["SSN"]
-
-    # # Handle missing Date of Birth
-    # if not afs_data.get("Date Of Birth") or afs_data["Date Of Birth"].strip() == "":
-    #     if afs_data.get("Birth Date"):
-    #         afs_data["Date Of Birth"] = afs_data.get("Birth Date")
-    #     else:
-    #         afs_data["Date Of Birth"] = "01/01/1980"
-    #         missing_values["Date Of Birth"] = afs_data["Date Of Birth"]
-
-    # # Handle missing Business Start Date
-    # if not afs_data.get("Business Start Date") or afs_data["Business Start Date"].strip() == "":
-    #     afs_data["Business Start Date"] = "01/01/2020"
-    #     missing_values["Business Start Date"] = afs_data["Business Start Date"]
     
     pprint.pprint(missing_values)
 
