@@ -12,10 +12,10 @@ from models.utils.clean_uploads_folder import clean_uploads as _clean_uploads
 class SubmissionsModel(MainModel):
     def __init__(self, upload_dir):
         super().__init__()
-
+        print(self.drive)
         self.upload_dir = self.resource_path(upload_dir)
         self.version = self.get_version()
-        self.drive = None
+        # self.drive = None
         self.uploaded_files = []
         self.selected_application_file = None
         self.application_file_type = None

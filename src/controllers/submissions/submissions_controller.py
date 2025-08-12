@@ -16,7 +16,7 @@ UPLOAD_DIR = "data/uploads"
 
 # --- Main application controller ---
 class SubmissionsController:
-    def __init__(self, root, BG_COLOR, DND_BG_COLOR):
+    def __init__(self, root: tk.Tk, BG_COLOR, DND_BG_COLOR):
         self.root = root
 
         self.model = SubmissionsModel(UPLOAD_DIR)
@@ -24,8 +24,6 @@ class SubmissionsController:
 
         self.bg_color = BG_COLOR
         self.dnd_bg_color = DND_BG_COLOR
-
-        self.model.drive = self.load_drive_path()
 
         self.view = SubmissionsView(self, self.model, root)
 
@@ -236,44 +234,8 @@ class SubmissionsController:
         self.view.spinner_running = False
         self.root.update()
 
-    def load_drive_path(self):
-        drive_path_file = self.model.get_user_data_path("drive_path.txt")   
-
-        if os.path.exists(drive_path_file):
-            with open(drive_path_file, "r") as f:
-                drive_path = f.read().strip()
-                if os.path.exists(drive_path):
-                    return drive_path
-                else:
-                    messagebox.showwarning("Drive not found", "Previously saved drive path is missing. Please select it again.")
-
-        # Ask user to select drive folder
-        self.prompt_for_drive()
-        drive_path = filedialog.askdirectory(title="Select Shared Drive Root Folder")
-        if not drive_path:
-            messagebox.showerror("Error", "Drive selection is required. Exiting.")
-            self.root.destroy()
-            exit()
-
-        # Save selected path
-        with open(drive_path_file, "w") as f:
-            f.write(drive_path)
-
-        return drive_path
-
     def change_drive_path(self):
         drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
-        drive_path_file = self.model.get_user_data_path("drive_path.txt")   
-
-        if drive_path:
-            with open(drive_path_file, "w") as f:
-                f.write(drive_path)
-            self.model.drive = drive_path
+        if self.model.change_drive_path(drive_path):
             self.view.drive_label.config(text=f"Drive: {self.model.drive}")
             messagebox.showinfo("Drive Updated", "Shared drive path updated successfully!")
-
-    def prompt_for_drive(self):
-        messagebox.showinfo(
-            "Select Drive Folder",
-            "No drive selected.\n\nPlease choose your Google Drive shared folder before proceeding."
-        )
