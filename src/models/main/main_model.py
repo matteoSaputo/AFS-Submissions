@@ -3,11 +3,17 @@ import os
 from models.utils.get_version import get_version as _get_version
 from models.utils.user_data import get_user_data_path as _get_user_data_path
 from models.utils.resource_path import resource_path as _resource_path
+from models.utils.clean_uploads_folder import clean_uploads as _clean_uploads
+
+# --- Global constants ---
+UPLOAD_DIR = "data/uploads"
 
 class MainModel:
     def __init__(self):
         self.version = self.get_version()
         self.drive = self.load_drive_path()
+        self.upload_dir = self.resource_path(UPLOAD_DIR)
+        self.uploaded_files = []
 
     def get_version(self):
         return _get_version()
@@ -17,6 +23,9 @@ class MainModel:
     
     def resource_path(self, relative_path):
         return _resource_path(relative_path)
+    
+    def clean_uploads(self):
+        return _clean_uploads(self.upload_dir)
     
     def load_drive_path(self):
         drive_path_file = self.get_user_data_path("drive_path.txt")   
@@ -36,3 +45,7 @@ class MainModel:
                 f.write(drive_path)
             self.drive = drive_path
             return drive_path
+        
+    def limit_file_name(self, file, limit=50):
+        name, extension = os.path.splitext(file)
+        return f"{name[:limit]}...{extension}" if len(file) > limit else file
