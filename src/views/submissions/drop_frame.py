@@ -25,7 +25,6 @@ class DropFrame(tk.Frame):
             highlightbackground="gray",
             highlightthickness=2
         )
-        # self.drop_frame.pack(pady=10)
 
         self.configure_dnd(self)
 
@@ -69,7 +68,7 @@ class DropFrame(tk.Frame):
         )
         self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.clear_files_btn = tk.Button( # needs decoupling
+        self.clear_files_btn = tk.Button( 
             root,
             text="Clear",
             font=("Segoe UI", 14),
@@ -85,13 +84,12 @@ class DropFrame(tk.Frame):
         widget.dnd_bind('<<Drop>>', self.drop_handler)
 
         # Allow clicking to open file dialog
-        widget.bind("<Button-1>", lambda event: self.upload_handler())
-        # widget.bind("<Button-1>", self.upload_handler) # need to see if this works too
+        widget.bind("<Button-1>", lambda e: self.upload_handler())
 
         widget.dnd_bind('<<DragEnter>>', lambda e: widget.config(bg="#d0f0d0"))
         widget.dnd_bind('<<DragLeave>>', lambda e: widget.config(bg=self.dnd_bg_color))
 
-    def show_file_list_frame(self): # need decoupling
+    def show_file_list_frame(self):
         self.upload_btn.place_forget()
         row_height = 30
         visible_rows = min(len(self.model.uploaded_files)+1, self.max_visible_rows)
@@ -109,13 +107,13 @@ class DropFrame(tk.Frame):
         
         self.clear_files_btn.pack(side="bottom", pady=10)
 
-    def hide_file_list_frame(self):     # need decoupling
+    def hide_file_list_frame(self):     
         self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
         self.clear_files_btn.pack_forget()
         self.scroll_canvas.place_forget()
         self.scrollbar.place_forget()
 
-    def update_file_display(self): # need decoupling
+    def update_file_display(self): 
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
 
@@ -146,7 +144,7 @@ class DropFrame(tk.Frame):
         
         self.make_scrollable_for_file_list(self)        
 
-    def make_scrollable_for_file_list(self, widget: tk.Widget): # need decoupling
+    def make_scrollable_for_file_list(self, widget: tk.Widget): 
         if not widget:
             return
         if not self.scrollbar.winfo_ismapped():

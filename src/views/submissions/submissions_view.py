@@ -66,58 +66,6 @@ class SubmissionsView(tk.Frame):
         )
         self.drop_frame.pack(pady=10)
 
-        # self.drop_frame = tk.Frame(# needs decoupling
-        #     self,
-        #     width=650,
-        #     height=200,
-        #     bg=self.dnd_bg_color,
-        #     highlightbackground="gray",
-        #     highlightthickness=2
-        # )
-        # self.drop_frame.pack(pady=10)
-
-        # self.configure_dnd(self.drop_frame)# needs decoupling
-
-        # self.drop_target_register('DND_Files')# needs decoupling
-        # self.dnd_bind('<<Drop>>', controller.handle_drop)# needs decoupling
-
-        # self.scroll_canvas = tk.Canvas(self.drop_frame, bg=self.dnd_bg_color, highlightthickness=0)# needs decoupling
-        # self.scroll_frame = tk.Frame(self.scroll_canvas, bg=self.dnd_bg_color)# needs decoupling
-        # self.scrollbar = tk.Scrollbar(# needs decoupling
-        #     self.drop_frame, 
-        #     orient="vertical",
-        #     command=self.scroll_canvas.yview
-        # )
-
-        # self.scroll_canvas.config(yscrollcommand=self.scrollbar.set)# needs decoupling
-
-        # self.scroll_canvas.create_window((0, 0), window=self.scroll_frame, anchor="nw")# needs decoupling
-
-        # self.scroll_frame.bind(# needs decoupling
-        #     "<Configure>",
-        #     lambda e: self.scroll_canvas.configure(scrollregion=self.scroll_canvas.bbox("all"))
-        # )
-
-        # self.drop_frame.bind(# needs decoupling
-        #     "<MouseWheel>",
-        #     lambda event: self.scroll_canvas.yview_scroll(int(-1 * (event.delta/120)), "units") 
-        # )
-
-        # self.configure_dnd(self.scroll_canvas)# needs decoupling
-        # self.configure_dnd(self.scroll_frame)# needs decoupling
-
-        # self.upload_btn = tk.Button( # needs decoupling
-        #     self.drop_frame, 
-        #     text="Click to Select File(s)\nor Drag and Drop", 
-        #     font=("Segoe UI", 14), 
-        #     command=controller.upload_pdf, 
-        #     bg="#007BFF", 
-        #     fg="white", 
-        #     width=20, 
-        #     height=2
-        # )
-        # self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
-
         # --- Spinner setup ---
         self.spinner_frames = []
         img = Image.open(self.spinner_path)
@@ -165,24 +113,3 @@ class SubmissionsView(tk.Frame):
             width=20
         )
         self.new_folder_btn.pack(side="left", padx=15)
-
-        # self.clear_files_btn = tk.Button( # needs decoupling
-        #     self,
-        #     text="Clear",
-        #     font=("Segoe UI", 14),
-        #     command=lambda: [self.model.clean_uploads(), controller.reset_folder_UI()],
-        #     bg="#545151",
-        #     fg="white",
-        #     width=10,
-        #     height=1
-        # )
-
-    # def configure_dnd(self, widget):
-    #     widget.drop_target_register('DND_Files')
-    #     widget.dnd_bind('<<Drop>>', self.controller.handle_drop)
-
-    #     # Allow clicking to open file dialog
-    #     widget.bind("<Button-1>", lambda event: self.controller.upload_pdf())
-
-    #     widget.dnd_bind('<<DragEnter>>', lambda e: widget.config(bg="#d0f0d0"))
-    #     widget.dnd_bind('<<DragLeave>>', lambda e: widget.config(bg=self.dnd_bg_color))

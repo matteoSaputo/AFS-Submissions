@@ -36,51 +36,6 @@ class SubmissionsController:
         pdf_files = [os.path.abspath(f.strip('{}')) for f in dropped_files]
         self.handle_files(pdf_files)
         self.view.drop_frame.config(bg=self.dnd_bg_color)
-
-    # def update_file_display(self): # need decoupling
-    #     for widget in self.view.scroll_frame.winfo_children():
-    #         widget.destroy()
-
-    #     if not self.model.uploaded_files:
-    #         self.hide_file_list_frame()
-    #         self.reset_folder_UI()
-    #         return
-    #     self.show_file_list_frame()
-
-    #     for file in self.model.uploaded_files:
-    #         row = tk.Frame(self.view.scroll_frame, bg=self.dnd_bg_color)
-    #         row.pack(fill="x", padx=4, pady=2)
-
-    #         label = tk.Button(row, text=self.service.limit_file_name(os.path.basename(file)), bg=self.dnd_bg_color, anchor="w")
-    #         label.pack(side="left", fill="x", expand=True)
-
-    #         btn = tk.Button(row, 
-    #             text="❌", 
-    #             command=lambda f=file: self.delete_file(f),
-    #             bg=self.dnd_bg_color,
-    #             fg="black",
-    #             padx=6
-    #         )
-
-    #         if file == self.model.selected_application_file:
-    #             label.config(bg='#bfbfbf')
-
-    #         btn.pack(side="right", padx=5)
-        
-    #     self.make_scrollable_for_file_list(self.view.drop_frame)        
-
-    # def make_scrollable_for_file_list(self, widget: tk.Widget): # need decoupling
-    #     if not widget:
-    #         return
-    #     if not self.view.scrollbar.winfo_ismapped():
-    #         widget.unbind("<MouseWheel>")
-    #     else:
-    #         widget.bind(
-    #             "<MouseWheel>",
-    #             lambda event: self.view.scroll_canvas.yview_scroll(int(-1 * (event.delta/120)), "units") 
-    #         )
-    #     for w in widget.winfo_children():
-    #         self.make_scrollable_for_file_list(w)
         
     def delete_file(self, file_path):
         self.service.delete_file(file_path)  
@@ -172,41 +127,16 @@ class SubmissionsController:
             messagebox.showerror("Error", f"Failed to process: {str(e)}")
 
     def reset_folder_UI(self):
-        # self.view.drop_frame.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
         self.service.reset_model_state()
         self.view.match_label.config(text="")
-        self.view.drop_frame.pack_forget() # need decoupling
+        self.view.drop_frame.pack_forget()
         self.view.title_label.pack(side='top', pady=(30, 20))
         self.view.change_drive_btn.pack(side='top', pady=(0, 10))
         self.view.drive_label.pack(side='top', pady=(0, 20))
-        self.view.drop_frame.pack(side="top", pady=10) # need decoupling
+        self.view.drop_frame.pack(side="top", pady=10)
         self.view.match_label.pack_forget() 
         self.view.folder_button_frame.pack_forget()
         self.view.drop_frame.update_file_display()
-
-    # def show_file_list_frame(self): # need decoupling
-    #     self.view.upload_btn.place_forget()
-    #     row_height = 30
-    #     visible_rows = min(len(self.model.uploaded_files)+1, self.view.max_visible_rows)
-    #     actual_height = row_height * visible_rows
-    #     max_height = row_height * self.view.max_visible_rows
-    #     relheight = actual_height / max_height - 0.02
-
-    #     self.view.scroll_canvas.place(relx=0.02, rely=0.02, relwidth=0.9, relheight=relheight)
-    #     self.view.scroll_frame.config(height=relheight)
-        
-    #     if len(self.model.uploaded_files)-1 > self.view.max_visible_rows:
-    #         self.view.scrollbar.place(relx=0.92, rely=0.02, relheight=relheight)
-    #     else:
-    #         self.view.scrollbar.place_forget()
-        
-    #     self.view.clear_files_btn.pack(side="bottom", pady=10)
-
-    # def hide_file_list_frame(self):     # need decoupling
-    #     self.view.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
-    #     self.view.clear_files_btn.pack_forget()
-    #     self.view.scroll_canvas.place_forget()
-    #     self.view.scrollbar.place_forget()
 
     def animate_spinner(self):
         if not self.view.spinner_running:
