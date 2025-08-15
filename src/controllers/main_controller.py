@@ -1,15 +1,15 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
-from controllers.submissions.submissions_controller import SubmissionsController
-from controllers.contracts.contracts_controller import ContractsController
-from controllers.email.email_controller import EmailController
+from controllers.submissions_controller import SubmissionsController
+from controllers.contracts_controller import ContractsController
+from controllers.email_controller import EmailController
 
-from models.main.main_model import MainModel
+from models.main_model import MainModel
 
-from views.main.footer import Footer
-from views.main.main_view import MainView
-from views.main.nav_bar import NavigationBar
+from views.components.footer import Footer
+from views.main_view import MainView
+from views.components.nav_bar import NavigationBar
 
 BG_COLOR = "#f7f7f7"
 DND_BG_COLOR = "#f0f0f0"

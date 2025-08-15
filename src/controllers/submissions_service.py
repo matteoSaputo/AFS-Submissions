@@ -2,7 +2,7 @@ import os
 import shutil 
 import pandas as pd
 
-from models.submissions.submissions_model import SubmissionsModel
+from models.submissions_model import SubmissionsModel
 
 class SubmissionService:
     def __init__(self, model: SubmissionsModel):

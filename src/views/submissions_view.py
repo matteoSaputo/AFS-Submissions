@@ -1,8 +1,8 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
-from models.main.main_model import MainModel
-from views.submissions.drop_frame import DropFrame
+from models.main_model import MainModel
+from views.components.drop_frame import DropFrame
 
 class SubmissionsView(tk.Frame):
     def __init__(self, controller, model: MainModel, root):
@@ -21,8 +21,8 @@ class SubmissionsView(tk.Frame):
         self.spinner_frame = 0
         self.spinner_path = self.controller.model.resource_path("assets/spinner.gif")
 
-        self.max_visible_rows = 5 # needs decoupling
-        # self.configure(bg="#A84848")
+        self.max_visible_rows = 5
+
         # --- UI Elements ---
         self.title_label = tk.Label(
             self, 

@@ -1,7 +1,7 @@
 import os
 
 # Import super class
-from models.main.main_model import MainModel
+from models.main_model import MainModel
 
 # Import relevant business logic modules
 from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission

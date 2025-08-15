@@ -1,10 +1,6 @@
 import tkinter as tk
-import os
 
-from PIL import Image, ImageTk
-
-from models.main.main_model import MainModel
-from views.submissions.submissions_view import SubmissionsView
+from models.main_model import MainModel
 
 class ContractsView(tk.Frame):
     def __init__(self, root, controller, model: MainModel, bg_color):

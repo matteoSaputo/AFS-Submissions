@@ -1,7 +1,7 @@
 import tkinter as tk
 
-from models.contracts.contracts_model import ContractsModel
-from views.contracts.contracts_view import ContractsView
+from models.contracts_model import ContractsModel
+from views.contracts_view import ContractsView
 
 class ContractsController:
     def __init__(self, root, bg_color, dnd_bg_color):

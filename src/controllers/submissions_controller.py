@@ -7,9 +7,9 @@ import threading
 import re
 
 # Import model and view
-from controllers.services.submissions_service import SubmissionService
-from models.submissions.submissions_model import SubmissionsModel
-from views.submissions.submissions_view import SubmissionsView
+from controllers.submissions_service import SubmissionService
+from models.submissions_model import SubmissionsModel
+from views.submissions_view import SubmissionsView
 
 # --- Main application controller ---
 class SubmissionsController:

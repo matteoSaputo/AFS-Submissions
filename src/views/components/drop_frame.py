@@ -2,7 +2,7 @@ import tkinter as tk
 import os
 from typing import Callable
 
-from models.main.main_model import MainModel
+from models.main_model import MainModel
 
 DND_BG_COLOR = "#f0f0f0"
 

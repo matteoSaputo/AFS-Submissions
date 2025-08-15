@@ -3,7 +3,7 @@ import os
 
 from PIL import Image, ImageTk
 
-from models.main.main_model import MainModel
+from models.main_model import MainModel
 
 class EmailView(tk.Frame):
     def __init__(self, root, model: MainModel, bg_color):

@@ -1,5 +1,5 @@
 from tkinterdnd2 import TkinterDnD as tk
-from controllers.main.main_controller import MainController
+from controllers.main_controller import MainController
 
 # --- Start app ---
 def main():
