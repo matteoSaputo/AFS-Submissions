@@ -7,7 +7,7 @@ from models.main_model import MainModel
 DND_BG_COLOR = "#f0f0f0"
 
 class DropFrame(tk.Frame):
-    def __init__(self, root, model: MainModel, upload_handler: Callable, drop_handler: Callable, ui_reset_handler: Callable, delete_file_handler: Callable):
+    def __init__(self, root, width, height, model: MainModel, upload_handler: Callable, drop_handler: Callable, ui_reset_handler: Callable, delete_file_handler: Callable):
         self.max_visible_rows = 5
 
         self.model = model
@@ -19,8 +19,8 @@ class DropFrame(tk.Frame):
 
         super().__init__(
             root,
-            width=650,
-            height=200,
+            width=width,
+            height=height,
             bg=self.dnd_bg_color,
             highlightbackground="gray",
             highlightthickness=2

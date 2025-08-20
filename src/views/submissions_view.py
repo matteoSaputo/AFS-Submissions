@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 
 from models.main_model import MainModel
 from views.components.drop_frame import DropFrame
+from views.components.spinner import Spinner
 
 class SubmissionsView(tk.Frame):
     def __init__(self, controller, model: MainModel, root):
@@ -17,8 +18,8 @@ class SubmissionsView(tk.Frame):
         self.version = model.version
         self.drive = model.drive
 
-        self.spinner_running = False
-        self.spinner_frame = 0
+        # self.spinner_running = False
+        # self.spinner_frame = 0
         self.spinner_path = self.controller.model.resource_path("assets/spinner.gif")
 
         self.max_visible_rows = 5
@@ -58,30 +59,39 @@ class SubmissionsView(tk.Frame):
 
         self.drop_frame = DropFrame(
             self,
-            self.model,
-            self.controller.upload_pdf,
-            self.controller.handle_drop,
-            self.controller.reset_folder_UI,
-            self.controller.delete_file,
+            model=self.model,
+            width=650,
+            height=200,
+            upload_handler=self.controller.upload_pdf,
+            drop_handler=self.controller.handle_drop,
+            ui_reset_handler=self.controller.reset_folder_UI,
+            delete_file_handler=self.controller.delete_file,
         )
         self.drop_frame.pack(pady=10)
 
-        # --- Spinner setup ---
-        self.spinner_frames = []
-        img = Image.open(self.spinner_path)
+        self.spinner = Spinner(
+            root,
+            spinner_path=self.spinner_path,
+            width=100,
+            height=100,
+            bg=self.bg_color
+        )
+        # # --- Spinner setup ---
+        # self.spinner_frames = []
+        # img = Image.open(self.spinner_path)
 
-        # Create a Canvas for the spinner
-        self.spinner_canvas = tk.Canvas(self, width=100, height=100, highlightthickness=0, bg=self.bg_color)
-        self.spinner_canvas_image = None 
+        # # Create a Canvas for the spinner
+        # self.spinner_canvas = tk.Canvas(self, width=100, height=100, highlightthickness=0, bg=self.bg_color)
+        # self.spinner_canvas_image = None 
 
-        # Load all frames
-        try:
-            while True:
-                frame = ImageTk.PhotoImage(img.copy().convert('RGBA'))  # ensure transparency preserved
-                self.spinner_frames.append(frame)
-                img.seek(len(self.spinner_frames))  # move to next frame
-        except EOFError:
-            pass
+        # # Load all frames
+        # try:
+        #     while True:
+        #         frame = ImageTk.PhotoImage(img.copy().convert('RGBA'))  # ensure transparency preserved
+        #         self.spinner_frames.append(frame)
+        #         img.seek(len(self.spinner_frames))  # move to next frame
+        # except EOFError:
+        #     pass
 
         self.match_label = tk.Label(
             self, 

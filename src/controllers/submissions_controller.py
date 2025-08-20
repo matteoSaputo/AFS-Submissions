@@ -41,22 +41,20 @@ class SubmissionsController:
         self.service.delete_file(file_path)  
         if self.model.selected_application_file == None:
             self.reset_folder_UI()      
-        # self.update_file_display()
         self.view.drop_frame.update_file_display()
 
     def process(self, file_list):          
         self.service.handle_files(file_list)
-        # self.update_file_display()
         self.view.drop_frame.update_file_display()
 
         if not self.model.selected_application_file:
-            self.hide_spinner()
+            self.view.spinner.hide_spinner()
             return
         
         self.start_submission()
 
     def handle_files(self, file_list):
-        self.show_spinner()
+        self.view.spinner.show_spinner()
         threading.Thread(target=lambda: self.process(file_list)).start()
 
     def start_submission(self):
@@ -110,7 +108,7 @@ class SubmissionsController:
             messagebox.showerror("Error", str(e))
             
         finally:
-            self.hide_spinner()
+            self.view.spinner.hide_spinner()
 
     def confirm_folder(self):
         self.finalize_submission(use_existing=True)
@@ -138,31 +136,31 @@ class SubmissionsController:
         self.view.folder_button_frame.pack_forget()
         self.view.drop_frame.update_file_display()
 
-    def animate_spinner(self):
-        if not self.view.spinner_running:
-            return
+    # def animate_spinner(self):
+    #     if not self.view.spinner_running:
+    #         return
 
-        frame = self.view.spinner_frames[self.view.spinner_frame]
+    #     frame = self.view.spinner_frames[self.view.spinner_frame]
 
-        if self.view.spinner_canvas_image is None:
-            self.view.spinner_canvas_image = self.view.spinner_canvas.create_image(50, 50, image=frame)
-        else:
-            self.view.spinner_canvas.itemconfig(self.view.spinner_canvas_image, image=frame)
+    #     if self.view.spinner_canvas_image is None:
+    #         self.view.spinner_canvas_image = self.view.spinner_canvas.create_image(50, 50, image=frame)
+    #     else:
+    #         self.view.spinner_canvas.itemconfig(self.view.spinner_canvas_image, image=frame)
 
-        self.view.spinner_frame = (self.view.spinner_frame + 1) % len(self.view.spinner_frames)
-        self.root.after(100, self.animate_spinner)
+    #     self.view.spinner_frame = (self.view.spinner_frame + 1) % len(self.view.spinner_frames)
+    #     self.root.after(100, self.animate_spinner)
 
-    def show_spinner(self):
-        self.view.spinner_canvas.pack(side="bottom")
-        if not self.view.spinner_running:
-            self.view.spinner_running = True
-            self.animate_spinner()
-        self.root.update()
+    # def show_spinner(self):
+    #     self.view.spinner_canvas.pack(side="bottom")
+    #     if not self.view.spinner_running:
+    #         self.view.spinner_running = True
+    #         self.animate_spinner()
+    #     self.root.update()
     
-    def hide_spinner(self):
-        self.view.spinner_canvas.pack_forget()
-        self.view.spinner_running = False
-        self.root.update()
+    # def hide_spinner(self):
+    #     self.view.spinner_canvas.pack_forget()
+    #     self.view.spinner_running = False
+    #     self.root.update()
 
     def change_drive_path(self):
         drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
