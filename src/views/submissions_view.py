@@ -76,22 +76,6 @@ class SubmissionsView(tk.Frame):
             height=100,
             bg=self.bg_color
         )
-        # # --- Spinner setup ---
-        # self.spinner_frames = []
-        # img = Image.open(self.spinner_path)
-
-        # # Create a Canvas for the spinner
-        # self.spinner_canvas = tk.Canvas(self, width=100, height=100, highlightthickness=0, bg=self.bg_color)
-        # self.spinner_canvas_image = None 
-
-        # # Load all frames
-        # try:
-        #     while True:
-        #         frame = ImageTk.PhotoImage(img.copy().convert('RGBA'))  # ensure transparency preserved
-        #         self.spinner_frames.append(frame)
-        #         img.seek(len(self.spinner_frames))  # move to next frame
-        # except EOFError:
-        #     pass
 
         self.match_label = tk.Label(
             self, 
