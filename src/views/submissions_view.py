@@ -2,6 +2,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 
 from models.main_model import MainModel
+from views.components.change_drive_btn import DriveChanger
 from views.components.drop_frame import DropFrame
 from views.components.spinner import Spinner
 
@@ -18,8 +19,6 @@ class SubmissionsView(tk.Frame):
         self.version = model.version
         self.drive = model.drive
 
-        # self.spinner_running = False
-        # self.spinner_frame = 0
         self.spinner_path = self.controller.model.resource_path("assets/spinner.gif")
 
         self.max_visible_rows = 5
@@ -33,29 +32,13 @@ class SubmissionsView(tk.Frame):
         )
         self.title_label.pack(side="top", pady=(30, 20))
 
-        self.change_drive_btn = tk.Button(
-            self,
-            text="Change Drive Folder",
-            font=("Segoe UI", 12),
-            command=controller.change_drive_path,
-            bg="#007BFF",
-            fg="white",
-            width=20
+        self.change_drive_btn = DriveChanger(
+            self, 
+            self.model, 
+            self.bg_color, 
+            btn_color="#007BFF"
         )
-        self.change_drive_btn.pack(side="top", pady=(0, 10))
-
-        self.drive_label = tk.Label(
-            self,
-            text="Drive: (not selected)",
-            font=("Segoe UI", 10),
-            bg=self.bg_color,
-            fg="gray"
-        )
-        self.drive_label.pack(side="top", pady=(0, 20))
-        if self.drive:
-            self.drive_label.config(text=f"Drive: {self.drive}")
-        else:
-            self.drive_label.config(text="Drive: (not selected)")
+        self.change_drive_btn.pack()
 
         self.drop_frame = DropFrame(
             self,

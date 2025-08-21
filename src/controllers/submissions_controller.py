@@ -99,7 +99,6 @@ class SubmissionsController:
 
             self.view.title_label.pack_forget()
             self.view.change_drive_btn.pack_forget()
-            self.view.drive_label.pack_forget()
 
             self.view.match_label.pack(pady=20)
             self.view.folder_button_frame.pack(pady=10)
@@ -129,15 +128,8 @@ class SubmissionsController:
         self.view.match_label.config(text="")
         self.view.drop_frame.pack_forget()
         self.view.title_label.pack(side='top', pady=(30, 20))
-        self.view.change_drive_btn.pack(side='top', pady=(0, 10))
-        self.view.drive_label.pack(side='top', pady=(0, 20))
+        self.view.change_drive_btn.pack(side='top')
         self.view.drop_frame.pack(side="top", pady=10)
         self.view.match_label.pack_forget() 
         self.view.folder_button_frame.pack_forget()
         self.view.drop_frame.update_file_display()
-
-    def change_drive_path(self):
-        drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
-        if self.model.change_drive_path(drive_path):
-            self.view.drive_label.config(text=f"Drive: {self.model.drive}")
-            messagebox.showinfo("Drive Updated", "Shared drive path updated successfully!")
