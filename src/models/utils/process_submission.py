@@ -11,9 +11,9 @@ from models.utils.fill_template import fill_pdf
 import os
 import re
 
-AFS_TEMPLATE = resource_path("data/templates/AFS Application (Fillable).pdf")
-NRS_TEMPLATE = resource_path("data/templates/NRS Funding Application.pdf")
-ARF_TEMPLATE = resource_path("data/templates/ARF Stella Application.pdf")
+AFS_TEMPLATE = resource_path("data/templates/applications/AFS Application (Fillable).pdf")
+NRS_TEMPLATE = resource_path("data/templates/applications/NRS Funding Application.pdf")
+ARF_TEMPLATE = resource_path("data/templates/applications/ARF Stella Application.pdf")
 
 def prepare_submission(afs_path: str, drive):
     afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path)
