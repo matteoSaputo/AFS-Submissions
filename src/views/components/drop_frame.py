@@ -7,7 +7,7 @@ from models.main_model import MainModel
 DND_BG_COLOR = "#f0f0f0"
 
 class DropFrame(tk.Frame):
-    def __init__(self, root, width, height, model: MainModel, upload_handler: Callable, drop_handler: Callable, ui_reset_handler: Callable, delete_file_handler: Callable):
+    def __init__(self, root, width, height, btn_color, model: MainModel, upload_handler: Callable, drop_handler: Callable, ui_reset_handler: Callable, delete_file_handler: Callable):
         self.max_visible_rows = 5
 
         self.model = model
@@ -16,6 +16,7 @@ class DropFrame(tk.Frame):
         self.dnd_bg_color = DND_BG_COLOR
         self.ui_reset_handler = ui_reset_handler
         self.delete_file_handler = delete_file_handler
+        self.btn_color = btn_color
 
         super().__init__(
             root,
@@ -61,7 +62,7 @@ class DropFrame(tk.Frame):
             text="Click to Select File(s)\nor Drag and Drop", 
             font=("Segoe UI", 14), 
             command=self.upload_handler, 
-            bg="#007BFF", 
+            bg=self.btn_color, 
             fg="white", 
             width=20, 
             height=2

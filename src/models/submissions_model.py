@@ -7,14 +7,12 @@ from models.main_model import MainModel
 from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission
 from models.utils.afs_parser import is_likely_application as _is_likely_application
 from models.utils.extract_zip import extract_zip as _extract_zip
-# from models.utils.clean_uploads_folder import clean_uploads as _clean_uploads
 
 class SubmissionsModel(MainModel):
     def __init__(self):
         super().__init__()
         self.version = self.get_version()
-        # self.drive = None
-        # self.uploaded_files = []
+    
         self.selected_application_file = None
         self.application_file_type = None
         self.afs_data = None
@@ -49,7 +47,5 @@ class SubmissionsModel(MainModel):
     
     def extract_zip(self, zip_path):
         return _extract_zip(zip_path)
-    
-    # def clean_uploads(self):
-    #     return _clean_uploads(self.upload_dir)
+
 

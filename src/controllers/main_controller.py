@@ -13,7 +13,7 @@ from views.components.nav_bar import NavigationBar
 
 BG_COLOR = "#f7f7f7"
 DND_BG_COLOR = "#f0f0f0"
-FOOTER_BG_COLOR = "#387097"
+FOOTER_BG_COLOR = "#575757"
 NAVBAR_BG_COLOR = FOOTER_BG_COLOR
 
 SUB_COLOR = BG_COLOR
@@ -91,14 +91,3 @@ class MainController:
             "Select Drive Folder",
             "No drive selected.\n\nPlease choose your Google Drive shared folder before proceeding."
         )
-
-    # def change_drive_path(self):
-    #     drive_path = filedialog.askdirectory(title="Select New Shared Drive Root Folder")
-    #     drive_path_file = self.model.get_user_data_path("drive_path.txt")   
-
-    #     if drive_path:
-    #         with open(drive_path_file, "w") as f:
-    #             f.write(drive_path)
-    #         self.model.drive = drive_path
-    #         # self.view.drive_label.config(text=f"Drive: {self.model.drive}")
-    #         messagebox.showinfo("Drive Updated", "Shared drive path updated successfully!")

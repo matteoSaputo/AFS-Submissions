@@ -1,10 +1,11 @@
 import tkinter as tk
-from PIL import Image, ImageTk
 
 from models.main_model import MainModel
 from views.components.change_drive_btn import DriveChanger
 from views.components.drop_frame import DropFrame
 from views.components.spinner import Spinner
+
+BTN_COLOR = "#007BFF"
 
 class SubmissionsView(tk.Frame):
     def __init__(self, controller, model: MainModel, root):
@@ -36,7 +37,7 @@ class SubmissionsView(tk.Frame):
             self, 
             self.model, 
             self.bg_color, 
-            btn_color="#007BFF"
+            btn_color=BTN_COLOR
         )
         self.change_drive_btn.pack()
 
@@ -45,6 +46,7 @@ class SubmissionsView(tk.Frame):
             model=self.model,
             width=650,
             height=200,
+            btn_color=BTN_COLOR,
             upload_handler=self.controller.upload_pdf,
             drop_handler=self.controller.handle_drop,
             ui_reset_handler=self.controller.reset_folder_UI,
