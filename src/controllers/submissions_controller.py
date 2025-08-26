@@ -58,7 +58,7 @@ class SubmissionsController:
         threading.Thread(target=lambda: self.process(file_list)).start()
 
     def start_submission(self):
-        try:
+        # try:
             if not self.model.full_package:
                 self.service.prepare_submission()
             if self.model.full_package: # this is a mess lol
@@ -103,10 +103,10 @@ class SubmissionsController:
             self.view.match_label.pack(pady=20)
             self.view.folder_button_frame.pack(pady=10)
 
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+        # except Exception as e:
+            # messagebox.showerror("Error", str(e))
             
-        finally:
+        # finally:
             self.view.spinner.hide_spinner()
 
     def confirm_folder(self):

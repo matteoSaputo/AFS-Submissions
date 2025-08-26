@@ -85,7 +85,7 @@ def map_fields(raw_data: dict, full_package: bool):
         for out_field in output_fields:            
             result[out_field] = matched_value
     
-    result["Business Legal Name"] = truncate_name_at_word(result["Business Legal Name"])
+    result["Business Legal Name"] = truncate_name_at_word(result.get("Business Legal Name", " "))
     result['Date'] = TODAY
     result["Title"] = "CEO"
     result["Primary Owner Name"] = f"{result.get('Primary Owner Name', '')} {raw_data.get('Primary Owner Name: Last', '')}"
@@ -110,7 +110,7 @@ def clean_value(value):
     for heading in SECTION_HEADINGS:
         if heading.lower() in value.lower():
             return ""
-    return value.strip()
+    return value.strip().replace('_', '')
 
 def split_inline_fields(field, value, inline_fields):
     """Splits out known subfields that appear inline within a value."""
@@ -212,14 +212,21 @@ def extract_from_pdf(pdf_path):
         full_text = ""
         for page in pdf.pages:
             full_text += page.extract_text() + "\n"
-
+    full_text = full_text.replace(' $', ':')
     start = full_text.find("BUSINESS INFORMATION")
     if start != -1:
         full_text = full_text[start:]
-
+    print(full_text)
     # Main pattern for extracting fields
     pattern = r"\*\s*(?P<field>[^:*]+?)\s*:\s*(?P<value>.*?)(?=\s*\*[^:*]+?:|\n|$)"
     matches = re.findall(pattern, full_text)
+    # back up match
+    if not matches:
+        LABEL_VALUE = re.compile(
+            r"([A-Za-z][A-Za-z /&()-]*?):\s*(.*?)(?=\s*[A-Z][A-Za-z /&()-]*?:|\n|$)",
+            re.DOTALL,
+        )
+        matches = LABEL_VALUE.findall(full_text)
 
     afs_data = extract_from_list(matches)
 
