@@ -150,12 +150,15 @@ def is_likely_application(file_path):
                 page = pdf.pages[0]
                 text = page.extract_text()
                 if not text:
+                    print("no text")
                     return False
                 for header in SECTION_HEADINGS:
                     if header not in text:
+                        print(header)
                         return False
                 return True
-    except Exception:
+    except Exception as e:
+        print(e)
         return False
 
 def extract_afs_data(file_path):

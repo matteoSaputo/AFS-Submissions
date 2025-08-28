@@ -3,6 +3,7 @@ import tkinter as tk
 from models.main_model import MainModel
 from views.components.change_drive_btn import DriveChanger
 from views.components.drop_frame import DropFrame
+from views.components.folder_match_frame import FolderMatchFrame
 from views.components.spinner import Spinner
 
 BTN_COLOR = "#007BFF"
@@ -55,40 +56,48 @@ class SubmissionsView(tk.Frame):
         self.drop_frame.pack(pady=10)
 
         self.spinner = Spinner(
-            root,
+            self,
             spinner_path=self.spinner_path,
             width=100,
             height=100,
             bg=self.bg_color
         )
 
-        self.match_label = tk.Label(
+        # self.match_label = tk.Label(
+        #     self, 
+        #     text="", 
+        #     font=("Segoe UI", 12), 
+        #     bg=self.bg_color
+        # )
+
+        self.folder_match_frame = FolderMatchFrame(
             self, 
-            text="", 
-            font=("Segoe UI", 12), 
-            bg=self.bg_color
+            bg=self.bg_color,
+            new_folder_handler=self.controller.create_new_folder,
+            confirm_folder_handler=self.controller.confirm_folder
         )
+        self.folder_match_frame.pack(padx=15)
 
-        self.folder_button_frame = tk.Frame(self, bg=self.bg_color)
+        # self.folder_button_frame = tk.Frame(self, bg=self.bg_color)
 
-        self.confirm_btn = tk.Button(
-            self.folder_button_frame, 
-            text="✅ Use This Folder", 
-            font=("Segoe UI", 12), 
-            command=controller.confirm_folder, 
-            bg="#28a745", 
-            fg="white", 
-            width=20
-        )
-        self.confirm_btn.pack(side="left", padx=5)
+        # self.confirm_btn = tk.Button(
+        #     self.folder_button_frame, 
+        #     text="✅ Use This Folder", 
+        #     font=("Segoe UI", 12), 
+        #     command=controller.confirm_folder, 
+        #     bg="#28a745", 
+        #     fg="white", 
+        #     width=20
+        # )
+        # self.confirm_btn.pack(side="left", padx=5)
 
-        self.new_folder_btn = tk.Button(
-            self.folder_button_frame, 
-            text="❌ Create New Folder", 
-            font=("Segoe UI", 12), 
-            command=controller.create_new_folder, 
-            bg="#dc3545", 
-            fg="white", 
-            width=20
-        )
-        self.new_folder_btn.pack(side="left", padx=15)
+        # self.new_folder_btn = tk.Button(
+        #     self.folder_button_frame, 
+        #     text="❌ Create New Folder", 
+        #     font=("Segoe UI", 12), 
+        #     command=controller.create_new_folder, 
+        #     bg="#dc3545", 
+        #     fg="white", 
+        #     width=20
+        # )
+        # self.new_folder_btn.pack(side="left", padx=15)

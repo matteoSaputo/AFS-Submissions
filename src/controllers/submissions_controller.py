@@ -58,7 +58,7 @@ class SubmissionsController:
         threading.Thread(target=lambda: self.process(file_list)).start()
 
     def start_submission(self):
-        # try:
+        try:
             if not self.model.full_package:
                 self.service.prepare_submission()
             if self.model.full_package: # this is a mess lol
@@ -91,22 +91,22 @@ class SubmissionsController:
                 return
 
             if self.model.matched_folder:
-                self.view.match_label.config(
+                self.view.folder_match_frame.match_label.config(
                     text=f"Matched Folder:\n{self.model.matched_folder}\n\nBusiness Name:\n{self.model.bus_name}\n\nMatch Score: {self.model.match_score}%"
                 )
             else:
-                self.view.match_label.config(text="No match found.\nWill create new folder.")
+                self.view.folder_match_frame.match_label.config(text="No match found.\nWill create new folder.")
 
             self.view.title_label.pack_forget()
             self.view.change_drive_btn.pack_forget()
 
-            self.view.match_label.pack(pady=20)
-            self.view.folder_button_frame.pack(pady=10)
+            self.view.folder_match_frame.match_label.pack(pady=20)
+            self.view.folder_match_frame.pack(pady=10)
 
-        # except Exception as e:
-            # messagebox.showerror("Error", str(e))
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
             
-        # finally:
+        finally:
             self.view.spinner.hide_spinner()
 
     def confirm_folder(self):
@@ -125,11 +125,11 @@ class SubmissionsController:
 
     def reset_folder_UI(self):
         self.service.reset_model_state()
-        self.view.match_label.config(text="")
+        self.view.folder_match_frame.match_label.config(text="")
         self.view.drop_frame.pack_forget()
         self.view.title_label.pack(side='top', pady=(30, 20))
         self.view.change_drive_btn.pack(side='top')
         self.view.drop_frame.pack(side="top", pady=10)
-        self.view.match_label.pack_forget() 
-        self.view.folder_button_frame.pack_forget()
+        # self.view.match_label.pack_forget() 
+        self.view.folder_match_frame.pack_forget()
         self.view.drop_frame.update_file_display()

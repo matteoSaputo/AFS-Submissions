@@ -20,6 +20,7 @@ class SubmissionService:
         likely_application = ""
         for file in extracted_files:
             if self.model.is_likely_application(file):
+                print("test")
                 likely_application = file
                 
         if likely_application:
