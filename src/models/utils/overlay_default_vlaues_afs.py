@@ -1,5 +1,6 @@
 import fitz
 from models.utils.resource_path import resource_path
+from models.utils.flatten_pdf import flatten_pdf
 
 FIELD_CORRDS = {
     "SSN": (65, 280),                                
@@ -12,9 +13,6 @@ def normalize_key(key: str):
     return key.strip().replace(",", "").replace("\xa0", "").replace(" ", "").lower()
 
 def overlay_default_values_afs(input_path, output_path, missing_data: dict):
-    if not missing_data:
-        return None
-
     doc = fitz.open(input_path)
     page = doc[0]  # Assuming all data is on page 1
 

@@ -7,6 +7,7 @@ from models.main_model import MainModel
 from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission
 from models.utils.afs_parser import is_likely_application as _is_likely_application
 from models.utils.extract_zip import extract_zip as _extract_zip
+from models.utils.flatten_pdf import flatten_pdf as _flatten_pdf, flatten_pdf_preserving_fields as _flatten_pdf_preserving_fields
 
 class SubmissionsModel(MainModel):
     def __init__(self):
@@ -48,4 +49,8 @@ class SubmissionsModel(MainModel):
     def extract_zip(self, zip_path):
         return _extract_zip(zip_path)
 
-
+    def flatten_pdf(self, path):
+        return _flatten_pdf(path, path)
+    
+    def flatten_pdf_preserving_fields(self, path):
+        return _flatten_pdf_preserving_fields(path, path)

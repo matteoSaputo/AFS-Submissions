@@ -102,6 +102,8 @@ class SubmissionsController:
 
             self.view.folder_match_frame.match_label.pack(pady=20)
             self.view.folder_match_frame.pack(pady=10)
+            self.view.folder_match_frame.folder_button_frame.pack(pady=20)
+
 
         except Exception as e:
             messagebox.showerror("Error", str(e))
@@ -131,5 +133,6 @@ class SubmissionsController:
         self.view.change_drive_btn.pack(side='top')
         self.view.drop_frame.pack(side="top", pady=10)
         # self.view.match_label.pack_forget() 
+        self.view.folder_match_frame.folder_button_frame.pack_forget()
         self.view.folder_match_frame.pack_forget()
         self.view.drop_frame.update_file_display()

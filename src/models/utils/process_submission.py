@@ -64,7 +64,8 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
 
     attatchements.remove(upload_path)
 
-    if file_type == '.pdf' and overlay_default_values_afs(upload_path, resource_path('temp_path.pdf'), missing_values):
+    if file_type == '.pdf':
+        overlay_default_values_afs(upload_path, resource_path('temp_path.pdf'), missing_values)
         os.replace(resource_path('temp_path.pdf'), upload_path)
 
     if file_type == '.csv':

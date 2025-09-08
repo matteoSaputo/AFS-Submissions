@@ -3,6 +3,7 @@ import shutil
 import pandas as pd
 
 from models.submissions_model import SubmissionsModel
+from models.utils.afs_parser import extract_afs_data
 
 class SubmissionService:
     def __init__(self, model: SubmissionsModel):
@@ -19,9 +20,13 @@ class SubmissionService:
 
         likely_application = ""
         for file in extracted_files:
-            if self.model.is_likely_application(file):
-                print("test")
+            temp_file = self.model.resource_path("temp_upload.pdf")
+            shutil.copy(file, temp_file)
+            # self.model.flatten_pdf(temp_file)
+            likely_application_found = self.model.is_likely_application(temp_file)
+            if likely_application_found:
                 likely_application = file
+            os.remove(temp_file)
                 
         if likely_application:
             self.model.clean_uploads()
