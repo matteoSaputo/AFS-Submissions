@@ -6,7 +6,7 @@ class MainView(tk.Frame):
 
         self.root = root
         self.root.title("AFS Submission Tool")
-        self.root.geometry("800x800")
+        self.root.geometry("800x900")
         root.configure(bg=bg_color)    
 
         self.config(bg=bg_color)    

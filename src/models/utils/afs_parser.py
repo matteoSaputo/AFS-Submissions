@@ -1,4 +1,5 @@
 import pprint
+import fitz
 import pdfplumber
 import re
 import random
@@ -8,6 +9,7 @@ import contextlib
 import csv
 import pandas as pd
 import datetime
+from pypdf import PdfReader
 
 TODAY = str(datetime.date.today())
 INLINE_SUBFIELDS = [
@@ -19,7 +21,17 @@ SECTION_HEADINGS = [
 CSV_KEYWORDS = [
     "Business", "Owner"
 ]
-FIELD_MAPPING = [
+AGREEMENT_KEYWORDS = [
+    "Agreement", "Vanguard"
+]
+CONTRACT_FIELDS = [
+    'Merchant Name:', 'Tele No:', 'Fee:', 'EIN:', 
+    "Merchant Address:", "City:", "State:", "Zip:", 
+    "Bank:", "Routing Number:", "Account Number:", 
+    "Line of Credit:", "initial funding:", 
+    "Print Name:", "Date:"
+]
+APPLICATION_FIELD_MAPPING = [
     (["Business Legal Name", "LegalCorporate Name"], ["business name", "business legal name"]),
     (["DBA", "DBA Name"], ["dba"]),
     (["Entity Type", "Type of Entity LLC INC Sole Prop", "Legal Entity Type"], ["entity type"]),
@@ -52,6 +64,20 @@ FIELD_MAPPING = [
     (["Average Monthly Credit Card Volume", "CC Processing Monthly Volume"], ["average monthly credit card volume"]),
     (["Outstanding Receivables"], ["outstanding receivables"])
 ]
+CONTRACT_FIELD_MAPPING = [
+    (["Merchant Name", "Business Legal Name", ], ["Merchant Name", "Business Legal Name", "LegalCorporate Name", "business name", "business legal name"]),
+    (["Phone"], ["Phone", "Tele No", "mobile", "Mobile Phone", "mobile 2", "cell phone"]),
+    (["Address"], ["merchant address", "business address", "address", "address,", "business address street", "address street", "address street,", "business address: address line 1"]),
+    (["City"], ["city", "city,", "business city", "business city,", "business address: city"]),
+    (["State"], ["state", "state,", "business state", "business state,", "business address: state"]),
+    (["Zip", "Zip Code"], ["zip", "business zip", "business address: zip/postal code"]),
+    (["Bank"], ["Bank"]),
+    (["Routing Number"], ["Routing Number"]),
+    (["Account Number"], ["Account Number"]),
+    (["LOC Amount"], ["Of The Line Of Credit Amount Of", "Line of Credit amount of"]),
+    (["Initial Funding"], ["initial funding", "Additional Funding Can Be Accepted After The Initial Funding", "No additional funding can be accepted after the initial funding"]),
+    (["Primary Owner Name", "Print Name"], ["Print Name", "owner name", "primary owner name", "primary owner name: first"])
+]
 DEFAULT_VALUES = {
     "SSN": f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}",
     "Date of Birth": "01/01/1980",
@@ -61,7 +87,7 @@ DEFAULT_VALUES = {
 def normalize_key(key: str):
     return key.strip().replace(",", "").replace("\xa0", "").lower()
 
-def map_fields(raw_data: dict, full_package: bool):
+def map_fields(raw_data: dict, full_package: bool, field_mapping):
     if full_package:
         return raw_data, None
 
@@ -69,7 +95,7 @@ def map_fields(raw_data: dict, full_package: bool):
     result = {}
     missing = {}
 
-    for output_fields, input_aliases in FIELD_MAPPING:
+    for output_fields, input_aliases in field_mapping:
         matched_value = None
         for alias in input_aliases:
             norm_alias = normalize_key(alias)
@@ -85,7 +111,7 @@ def map_fields(raw_data: dict, full_package: bool):
         for out_field in output_fields:            
             result[out_field] = matched_value
     
-    result["Business Legal Name"] = truncate_name_at_word(result.get("Business Legal Name", " "))
+    # result["Business Legal Name"] = truncate_name_at_word(result.get("Business Legal Name", " "))
     result['Date'] = TODAY
     result["Title"] = "CEO"
     result["Primary Owner Name"] = f"{result.get('Primary Owner Name', '')} {raw_data.get('Primary Owner Name: Last', '')}"
@@ -93,10 +119,10 @@ def map_fields(raw_data: dict, full_package: bool):
 
     return result, missing
 
-def normalize_field_name(field):
-    # Insert space before capital letters that follow lowercase or other capitals
-    spaced = re.sub(r'(?<=[a-zA-Z])(?=[A-Z])', ' ', field)
-    return spaced.strip().title()
+# def normalize_field_name(field):
+#     # Insert space before capital letters that follow lowercase or other capitals
+#     spaced = re.sub(r'(?<=[a-zA-Z])(?=[A-Z])', ' ', field)
+#     return spaced.strip().title()
 
 def truncate_name_at_word(name, limit=40):
     if len(name) <= limit:
@@ -110,7 +136,7 @@ def clean_value(value):
     for heading in SECTION_HEADINGS:
         if heading.lower() in value.lower():
             return ""
-    return value.strip().replace('_', '')
+    return value.strip()
 
 def split_inline_fields(field, value, inline_fields):
     """Splits out known subfields that appear inline within a value."""
@@ -123,6 +149,20 @@ def split_inline_fields(field, value, inline_fields):
             subresults[subfield] = parts[1].strip() if len(parts) > 1 else ""
             return subresults
     return {field: value.strip()}
+
+def is_likely_agreement(file_path):
+    try:        
+        with pdfplumber.open(file_path) as pdf:
+            page = pdf.pages[0]
+            text = page.extract_text()
+            if not text:
+                return False
+            for header in AGREEMENT_KEYWORDS:
+                if header not in text:
+                    return False
+            return True
+    except Exception as e:
+        return False
 
 def is_likely_application(file_path):
     @contextlib.contextmanager
@@ -150,27 +190,33 @@ def is_likely_application(file_path):
                 page = pdf.pages[0]
                 text = page.extract_text()
                 if not text:
-                    print("no text")
                     return False
                 for header in SECTION_HEADINGS:
                     if header not in text:
-                        print(header)
                         return False
                 return True
     except Exception as e:
-        print(e)
         return False
 
-def extract_afs_data(file_path):
-    if not is_likely_application(file_path):
-        print("Not likely Application")
-        return None
+def get_document_type(file_path):
+    if is_likely_application(file_path):
+        return "Application"
+    elif is_likely_agreement(file_path):
+        return "Contract"
+    return None
+
+def extract_afs_data(file_path, document_purpose):
+    document_type = get_document_type(file_path)
+    if not document_type:
+        return None    
+
+    field_mapping = CONTRACT_FIELD_MAPPING if document_purpose == "Contract" else APPLICATION_FIELD_MAPPING
     ext = os.path.splitext(file_path)[1]
     afs_data = {} 
     full_Package = False
 
     if ext == '.pdf':
-        afs_data = extract_from_pdf(file_path)
+        afs_data = extract_from_pdf(file_path, document_type)
     elif ext == '.csv':
         df = pd.read_csv(file_path)
         if len(df) == 0:
@@ -181,7 +227,8 @@ def extract_afs_data(file_path):
         else:
             full_Package = True
             afs_data = extract_from_full_package_csv(df)
-    afs_data, missing_values = map_fields(afs_data, full_Package)
+    afs_data, missing_values = map_fields(afs_data, full_Package, field_mapping)
+    print(afs_data)
     return afs_data, missing_values, ext, full_Package
 
 def extract_from_full_package_csv(df: pd.DataFrame):
@@ -210,16 +257,38 @@ def extract_from_df_row(row):
     afs_data['Date'] = TODAY
     return afs_data
 
-def extract_from_pdf(pdf_path):
+def extract_from_pdf(pdf_path, document_type):
+    if document_type == "Application":
+        return extract_from_application(pdf_path)
+    elif document_type == "Contract":
+        return extract_from_contract(pdf_path)
+    return None
+
+def extract_from_contract(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
         for page in pdf.pages:
             full_text += page.extract_text() + "\n"
-    full_text = full_text.replace(' $', ':')
+    full_text = full_text.replace(' $', ':').replace('_', '')
+    full_text = full_text[:full_text.find("By signing")] + full_text[full_text.find("Line of Credit amount of"):full_text.find("for a term of")] + full_text[full_text.find("initial funding"):full_text.find("by Alternative Funding Solutions, Inc")] + full_text[full_text.find("agency that furnished same"):]
+    for key in CONTRACT_FIELDS:
+        full_text = full_text.replace(key, f'\n{key}')
+    full_text = full_text.replace('.00', '.00\n')
+    print(full_text)
+    return extract_from_text(full_text)
+
+def extract_from_application(pdf_path):
+    with pdfplumber.open(pdf_path) as pdf:
+        full_text = ""
+        for page in pdf.pages:
+            full_text += page.extract_text() + "\n"
     start = full_text.find("BUSINESS INFORMATION")
     if start != -1:
         full_text = full_text[start:]
-    print(full_text)
+    
+    return extract_from_text(full_text)
+
+def extract_from_text(full_text):
     # Main pattern for extracting fields
     pattern = r"\*\s*(?P<field>[^:*]+?)\s*:\s*(?P<value>.*?)(?=\s*\*[^:*]+?:|\n|$)"
     matches = re.findall(pattern, full_text)
@@ -232,7 +301,6 @@ def extract_from_pdf(pdf_path):
         matches = LABEL_VALUE.findall(full_text)
 
     afs_data = extract_from_list(matches)
-
     return afs_data
 
 def extract_from_list(list):
@@ -241,7 +309,8 @@ def extract_from_list(list):
 
     afs_data = {}
     for field, value in list:
-        field = normalize_field_name(str(field.strip()))
+        # field = normalize_field_name(str(field.strip()))
+        field = str(field.strip())
         value = clean_value(str(value))
 
         # Detect section change

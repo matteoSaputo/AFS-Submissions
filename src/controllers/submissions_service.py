@@ -3,7 +3,6 @@ import shutil
 import pandas as pd
 
 from models.submissions_model import SubmissionsModel
-from models.utils.afs_parser import extract_afs_data
 
 class SubmissionService:
     def __init__(self, model: SubmissionsModel):

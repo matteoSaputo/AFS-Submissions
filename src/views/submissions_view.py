@@ -63,13 +63,6 @@ class SubmissionsView(tk.Frame):
             bg=self.bg_color
         )
 
-        # self.match_label = tk.Label(
-        #     self, 
-        #     text="", 
-        #     font=("Segoe UI", 12), 
-        #     bg=self.bg_color
-        # )
-
         self.folder_match_frame = FolderMatchFrame(
             self, 
             bg=self.bg_color,
@@ -77,27 +70,3 @@ class SubmissionsView(tk.Frame):
             confirm_folder_handler=self.controller.confirm_folder
         )
         self.folder_match_frame.pack(padx=15)
-
-        # self.folder_button_frame = tk.Frame(self, bg=self.bg_color)
-
-        # self.confirm_btn = tk.Button(
-        #     self.folder_button_frame, 
-        #     text="✅ Use This Folder", 
-        #     font=("Segoe UI", 12), 
-        #     command=controller.confirm_folder, 
-        #     bg="#28a745", 
-        #     fg="white", 
-        #     width=20
-        # )
-        # self.confirm_btn.pack(side="left", padx=5)
-
-        # self.new_folder_btn = tk.Button(
-        #     self.folder_button_frame, 
-        #     text="❌ Create New Folder", 
-        #     font=("Segoe UI", 12), 
-        #     command=controller.create_new_folder, 
-        #     bg="#dc3545", 
-        #     fg="white", 
-        #     width=20
-        # )
-        # self.new_folder_btn.pack(side="left", padx=15)

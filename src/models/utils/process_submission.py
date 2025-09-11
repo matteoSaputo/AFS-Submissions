@@ -15,8 +15,8 @@ AFS_TEMPLATE = resource_path("data/templates/applications/AFS Application (Filla
 NRS_TEMPLATE = resource_path("data/templates/applications/NRS Funding Application.pdf")
 ARF_TEMPLATE = resource_path("data/templates/applications/ARF Stella Application.pdf")
 
-def prepare_submission(afs_path: str, drive):
-    afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path)
+def prepare_submission(afs_path: str, drive, document_purpose):
+    afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path, document_purpose)
     if full_package:
         return afs_data, None, file_type, None, None, None, full_package
     bus_name, matched_folder, match_score = prepare_fields(

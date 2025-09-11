@@ -39,8 +39,8 @@ class SubmissionsModel(MainModel):
             self.customer_folder
         )
     
-    def prepare_submission(self):
-        self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score, self.full_package = _prepare_submission(self.selected_application_file, self.drive)
+    def prepare_submission(self, document_purpose="Application"):
+        self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score, self.full_package = _prepare_submission(self.selected_application_file, self.drive, document_purpose)
         return self.afs_data, self.missing_vlaues, self.selected_application_file, self.bus_name, self.matched_folder, self.match_score, self.full_package
     
     def is_likely_application(self, file_path):

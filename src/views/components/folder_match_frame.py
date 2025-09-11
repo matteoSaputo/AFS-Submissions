@@ -6,6 +6,7 @@ class FolderMatchFrame(tk.Frame):
         self.new_folder_handler = new_folder_handler
         self.confirm_folder_handler = confirm_folder_handler
         self.bg_color = bg
+        self.configure(bg=self.bg_color)
 
         self.match_label = tk.Label(
             self,  
