@@ -58,7 +58,7 @@ class SubmissionsController:
         threading.Thread(target=lambda: self.process(file_list)).start()
 
     def start_submission(self):
-        # try:
+        try:
             if not self.model.full_package:
                 self.service.prepare_submission()
             if self.model.full_package: # this is a mess lol
@@ -105,11 +105,11 @@ class SubmissionsController:
             self.view.folder_match_frame.folder_button_frame.pack(pady=20)
 
 
-        # except Exception as e:
-        #     messagebox.showerror("Error", str(e))
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
             
-        # finally:
-        #     self.view.spinner.hide_spinner()
+        finally:
+            self.view.spinner.hide_spinner()
 
     def confirm_folder(self):
         self.finalize_submission(use_existing=True)
@@ -118,20 +118,19 @@ class SubmissionsController:
         self.finalize_submission(use_existing=False)
 
     def finalize_submission(self, use_existing):
-        try:
+        # try:
             self.service.finalize_submission(use_existing)
             messagebox.showinfo("Success", "Submission processed successfully!")
             self.reset_folder_UI()
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to process: {str(e)}")
+        # except Exception as e:
+        #     messagebox.showerror("Error", f"Failed to process: {str(e)}")
 
     def reset_folder_UI(self):
         self.service.reset_model_state()
         self.view.folder_match_frame.match_label.config(text="")
-        self.view.drop_frame.pack_forget()
+        for w in self.view.winfo_children():
+            w.pack_forget()
         self.view.title_label.pack(side='top', pady=(30, 20))
         self.view.change_drive_btn.pack(side='top')
         self.view.drop_frame.pack(side="top", pady=10)
-        self.view.folder_match_frame.folder_button_frame.pack_forget()
-        self.view.folder_match_frame.pack_forget()
         self.view.drop_frame.update_file_display()

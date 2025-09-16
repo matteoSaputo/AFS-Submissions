@@ -5,7 +5,7 @@ from models.utils.resource_path import resource_path
 from models.utils.insert_script_signature import insert_script_signature
 from models.utils.flatten_pdf import flatten_pdf_preserving_fields
 
-def fill_pdf(afs_data: dict, output_path, template_path, sig_coords: tuple, flatten: bool):
+def fill_pdf(afs_data: dict, output_path, template_path, sig_coords=(0, 0, 0, 0), flatten=False, sign=True):
     if os.path.exists(output_path):
         os.unlink(output_path)
 
@@ -33,13 +33,18 @@ def fill_pdf(afs_data: dict, output_path, template_path, sig_coords: tuple, flat
     else:
         os.replace(resource_path("temp.pdf"), output_path)
 
-    insert_script_signature(
-        output_path, 
-        resource_path("temp.pdf"), 
-        afs_data["Primary Owner Name"],
-        sig_coords
-    )
-    os.replace(resource_path("temp.pdf"), output_path)
+    if sign:
+        insert_script_signature(
+            output_path, 
+            resource_path("temp.pdf"), 
+            afs_data["Primary Owner Name"],
+            sig_coords
+        )
+        os.replace(resource_path("temp.pdf"), output_path)
+
+    # Clean up
+    if os.path.exists(resource_path("temp.pdf")):
+        os.remove(resource_path("temp.pdf"))
 
     return output_path
 

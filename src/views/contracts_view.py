@@ -10,7 +10,7 @@ from views.components.spinner import Spinner
 BTN_COLOR = "#0F20B4"
 DND_BG_COLOR = "#f0f0f0"
 
-class ContractsView(tk.Frame):
+class ContractsPageOne(tk.Frame):
     def __init__(self, root, controller, model: MainModel, bg):
         super().__init__(root)
         self.root = root
@@ -62,18 +62,18 @@ class ContractsView(tk.Frame):
         tk.Label(self.options, text="Frequency", font=("Segoe UI", 10, "bold"),
                  fg="#000000", bg=bg).grid(row=0, column=1, sticky="w")
         self.freq_combo = ttk.Combobox(
-            self.options, state="readonly", values=["Weekly", "Daily"],
+            self.options, state="readonly", values=["Weekly", "Daily", "Monthly"],
         )
         self.freq_combo.set("Weekly")
         self.freq_combo.grid(row=1, column=1, sticky="w", padx=(0, 16))
 
         tk.Label(self.options, text="Interest", font=("Segoe UI", 10, "bold"),
                  fg="#000000", bg=bg).grid(row=0, column=2, sticky="w")
-        self.freq_combo = ttk.Combobox(
+        self.rate_combo = ttk.Combobox(
             self.options, state="readonly", values=[1.00, 1.25, 1.50]
         )
-        self.freq_combo.set(1.50)
-        self.freq_combo.grid(row=1, column=2, sticky="w", padx=(0, 16))
+        self.rate_combo.set(1.50)
+        self.rate_combo.grid(row=1, column=2, sticky="w", padx=(0, 16))
         
         self.drop_frame = DropFrame(
             self,

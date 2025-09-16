@@ -27,6 +27,7 @@ class ContracstService(SubmissionService):
             os.remove(temp_file)
                 
         if likely_agreement:
+            self.model.selected_application_file = likely_agreement
             self.model.clean_uploads()
 
         for file in extracted_files:
@@ -39,3 +40,19 @@ class ContracstService(SubmissionService):
             self.model.uploaded_files.append(dest_path)
 
         return likely_agreement
+    
+    def reset_model_state(self):
+        self.model.business_name = ""
+        self.model.phone = ""
+        self.model.fee_percent = None
+        self.model.ein = ""
+        self.model.frequency = ""
+        self.model.interest_rate = None
+        self.model.routing_number = ""
+        self.model.account_number = ""
+        self.model.bank_name = ""
+        self.model.loc_amount = None
+        self.model.funding_amout = None
+        self.model.owner_name = ""
+        self.model.date = ""
+        return super().reset_model_state()

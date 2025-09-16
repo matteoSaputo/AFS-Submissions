@@ -11,9 +11,14 @@ from models.utils.fill_template import fill_pdf
 import os
 import re
 
+# --- Aplication Templates --- 
 AFS_TEMPLATE = resource_path("data/templates/applications/AFS Application (Fillable).pdf")
 NRS_TEMPLATE = resource_path("data/templates/applications/NRS Funding Application.pdf")
 ARF_TEMPLATE = resource_path("data/templates/applications/ARF Stella Application.pdf")
+
+# --- Contract Templates ---
+LOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/Line of Credit Agreement Master.pdf")
+AUTHORIZATION_FEE_SHEET_TEMPLATE = resource_path("data/templates/agreements/Authorization Fee Sheet.pdf")
 
 def prepare_submission(afs_path: str, drive, document_purpose):
     afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path, document_purpose)
@@ -74,7 +79,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
                 afs_data, 
                 business_application, 
                 AFS_TEMPLATE, 
-                (180, 575, 360, 675),
+                sig_coords=(180, 575, 360, 675),
                 flatten=True
             )
         )
@@ -94,8 +99,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
                 afs_data, 
                 nrs_application, 
                 NRS_TEMPLATE, 
-                (120, 705, 300, 805), 
-                flatten=False
+                sig_coords=(120, 705, 300, 805), 
             )
         )
 
@@ -105,8 +109,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
             afs_data,
             arf_application,
             ARF_TEMPLATE,
-            (120, 675, 300, 775),
-            flatten=False
+            sig_coords=(120, 675, 300, 775),
         )
     )
 
@@ -114,3 +117,39 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     migrate_to_drive(attatchements, customer_folder)
 
     return attatchements
+
+def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name: str, customer_folder: str):
+    loc_agreement = resource_path(f"data/uploads/Line of Credit Agreement - {bus_name}.pdf")
+    fee_sheet = resource_path(f"data/uploads/Authorization Fee Sheet - {bus_name}.pdf")
+
+    attatchements.remove(upload_path)
+
+    # Create the customer folder if it doesn't exist
+    os.makedirs(customer_folder, exist_ok=True)
+
+    # Generate LOC agreement
+    attatchements.append(
+        fill_pdf(
+            afs_data, 
+            loc_agreement,
+            LOC_AGREEMENT_TEMPLATE,
+            flatten=True,
+            sign=False
+        )
+    )
+
+    # Generate Fee Sheet
+    attatchements.append(
+        fill_pdf(
+            afs_data, 
+            fee_sheet,
+            AUTHORIZATION_FEE_SHEET_TEMPLATE,
+            flatten=True,
+            sign=False
+        )
+    )
+
+    migrate_to_drive(attatchements, customer_folder)
+
+    return attatchements
+

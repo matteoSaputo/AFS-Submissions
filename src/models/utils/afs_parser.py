@@ -66,16 +66,18 @@ APPLICATION_FIELD_MAPPING = [
 ]
 CONTRACT_FIELD_MAPPING = [
     (["Merchant Name", "Business Legal Name", ], ["Merchant Name", "Business Legal Name", "LegalCorporate Name", "business name", "business legal name"]),
-    (["Phone"], ["Phone", "Tele No", "mobile", "Mobile Phone", "mobile 2", "cell phone"]),
-    (["Address"], ["merchant address", "business address", "address", "address,", "business address street", "address street", "address street,", "business address: address line 1"]),
+    (["Phone", "Tele No"], ["Phone", "Tele No", "mobile", "Mobile Phone", "mobile 2", "cell phone"]),
+    (["Fee"], ["fee", "Fee"]),
+    (["EIN"], ["tax id", "ein", "e i n", "federal tax-id", "federal taxid", "federal tax id", "federal tax-i d", "federal tax i d"]),
+    (["Merchant Address"], ["merchant address", "business address", "address", "address,", "business address street", "address street", "address street,", "business address: address line 1"]),
     (["City"], ["city", "city,", "business city", "business city,", "business address: city"]),
     (["State"], ["state", "state,", "business state", "business state,", "business address: state"]),
     (["Zip", "Zip Code"], ["zip", "business zip", "business address: zip/postal code"]),
     (["Bank"], ["Bank"]),
     (["Routing Number"], ["Routing Number"]),
     (["Account Number"], ["Account Number"]),
-    (["LOC Amount"], ["Of The Line Of Credit Amount Of", "Line of Credit amount of"]),
-    (["Initial Funding"], ["initial funding", "Additional Funding Can Be Accepted After The Initial Funding", "No additional funding can be accepted after the initial funding"]),
+    (["Line of Credit", "LOC Amount"], ["Of The Line Of Credit Amount Of", "Line of Credit amount of"]),
+    (["initial funding", "Initial Funding"], ["initial funding", "Additional Funding Can Be Accepted After The Initial Funding", "No additional funding can be accepted after the initial funding"]),
     (["Primary Owner Name", "Print Name"], ["Print Name", "owner name", "primary owner name", "primary owner name: first"])
 ]
 DEFAULT_VALUES = {
@@ -269,7 +271,7 @@ def extract_from_contract(pdf_path):
         full_text = ""
         for page in pdf.pages:
             full_text += page.extract_text() + "\n"
-    full_text = full_text.replace(' $', ':').replace('_', '')
+    full_text = full_text.replace(' $', ':').replace('_', '').replace('M erchant', 'Merchant').replace('B ank', 'Bank')
     full_text = full_text[:full_text.find("By signing")] + full_text[full_text.find("Line of Credit amount of"):full_text.find("for a term of")] + full_text[full_text.find("initial funding"):full_text.find("by Alternative Funding Solutions, Inc")] + full_text[full_text.find("agency that furnished same"):]
     for key in CONTRACT_FIELDS:
         full_text = full_text.replace(key, f'\n{key}')
@@ -285,7 +287,7 @@ def extract_from_application(pdf_path):
     start = full_text.find("BUSINESS INFORMATION")
     if start != -1:
         full_text = full_text[start:]
-    
+    full_text = full_text.replace('Fax', '*Fax')
     return extract_from_text(full_text)
 
 def extract_from_text(full_text):
