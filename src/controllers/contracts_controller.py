@@ -44,7 +44,7 @@ class ContractsController(SubmissionsController):
 
     def finalize_submission(self, use_existing):
         self.model.afs_data["Fee"] = self.view.fee_combo.get()
-        self.model.afs_data["Frequency"] = self.view.freq_combo.get()
+        self.model.afs_data["Frequency"] = self.view.freq_combo.get().lower()
         self.model.afs_data["Interest Rate"] = self.view.rate_combo.get()
         for w in self.view.winfo_children():
             w.pack_forget()

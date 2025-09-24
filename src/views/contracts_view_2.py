@@ -1,12 +1,19 @@
 import tkinter as tk
 from tkinter import ttk
-import re
 
 from models.contracts_model import ContractsModel
-from models.utils.afs_parser import CONTRACT_FIELDS
+from views.contracts_view import COMBOBOX_VALUES
 
 BTN_COLOR = "#0F20B4"
 DND_BG_COLOR = "#f0f0f0"
+CONTRACT_FIELDS = [
+    'Merchant Name', 'Tele No', 'Fee', 'Frequency', 'Interest Rate', 'Fee Amount', 'EIN', 
+    "Merchant Address", "City", "State", "Zip", "Bank", "Routing Number", "Account Number", 
+    "Line of Credit", "Initial Funding", "Print Name", "Date"
+]
+SCREEN_ONE_VARS = [
+    "Fee", "Frequency", "Interest Rate"
+]
 
 class ContractsPageTwo(tk.Frame):
     def __init__(self, root, controller, model: ContractsModel, bg, finalize_handler, reset_ui_handler):
@@ -20,17 +27,13 @@ class ContractsPageTwo(tk.Frame):
         # parsed/known values
         self.data = dict(self.model.afs_data or {})
 
-        # keep references to vars so they don't get GC'd
+        # keep references to vars and entries so they don't get GC'd
         self.vars: dict[str, tk.StringVar] = {}
-        self.vars_by_key = {} 
-        # self.entries_by_key = {}
+        self.blocks: dict[str, LabeledEntry] = {}
 
         self.spinner_path = self.model.resource_path("assets/spinner.gif")
         self.contract_fields = CONTRACT_FIELDS  # list of display labels
-        if not "Fee Amount" in self.contract_fields: self.contract_fields.insert(3, "Fee Amount")
-        if not "Interest Rate" in self.contract_fields: self.contract_fields.insert(3, "Interest Rate")
-        if not "Frequency" in self.contract_fields: self.contract_fields.insert(3, "Frequency")
-
+       
         # ---------- fields ----------
         self.fields = tk.Frame(self, bg=bg)
         self.fields.grid_columnconfigure(0, weight=1)
@@ -40,25 +43,18 @@ class ContractsPageTwo(tk.Frame):
         for label in self.contract_fields:
             # normalize label -> key used in dict
             src_key = label.replace(":", "").strip()
-            key_norm = src_key.lower()
             initial = self.data.get(src_key, "")
             sv = tk.StringVar(value=initial)
-
-            # live update back into self.model.afs_data
-            def make_callback(key, var):           
-                return lambda *args: self.model.afs_data.__setitem__(key, var.get())
-            sv.trace_add("write", make_callback(src_key, sv))
-
-            block = LabeledEntry(self.fields, label=label, textvariable=sv, width=40)
+            values = COMBOBOX_VALUES.get(label, None)
+            block = LabeledEntry(self.fields, label=label, textvariable=sv, width=40, values=values)
             block.grid(row=row, column=0, sticky="ew", padx=6, pady=4)
-            row += 1
+            row += 1            
 
-            self.vars[label] = sv
-            self.vars_by_key[key_norm] = sv
-            # self.entries_by_key[key_norm] = block.entry
+            self.vars[src_key] = sv
+            self.blocks[src_key] = block
 
-        self._setup_fee_bindings()
-        # self._setup_money_field_formatters()
+        self.format_all = self._setup_bindings()
+        self.format_all()
 
         self.fields.pack(pady=20, fill="x")
 
@@ -70,7 +66,7 @@ class ContractsPageTwo(tk.Frame):
             self.contract_button_frame,
             text="Generate Contracts",
             font=("Segoe UI", 14),
-            command=lambda: self._on_generate(finalize_handler),
+            command=lambda: [self.format_all(), self._on_generate(finalize_handler)],
             bg="#8752CE",
             fg="white",
             height=1
@@ -97,133 +93,179 @@ class ContractsPageTwo(tk.Frame):
             self.model.afs_data[key] = sv.get()
         finalize_handler()
 
-    def _setup_fee_bindings(self):
-        # Accept multiple label/key variants
-        PCT_KEYS = ["fee", "percent fee", "fee %"]
-        AMT_KEYS = ["fee amount", "total fee"]
-        LOC_KEYS = ["line of credit", "loc amount", "of the line of credit amount of"]
-        IFA_KEYS = ["initial funding"]
+    #def setup bindings
+    def _setup_bindings(self) -> callable:
+        #define format funcs
+        def _fmt(key_var: tk.StringVar | None):
+            if not key_var:
+                return
+            key_var.set(self.model._capitalize_all(key_var.get()))
 
-        def _find_var(candidates):
-            for cand in candidates:
-                v = self.vars_by_key.get(cand.lower())
-                if v:
-                    return v
-            # fallback: substring search over known keys
-            for k, v in self.vars_by_key.items():
-                if any(cand in k for cand in candidates):
-                    return v
-            return None
+        #unique format funcs: ein, phone, fee
+        def format_ein(*_):
+            ein_var = self.vars.get("EIN")
+            if not ein_var:
+                return
+            ein = self.model._fmt_ein(ein_var.get())
+            if ein is not None:
+                ein_var.set(ein)
 
-        pct_var = _find_var(PCT_KEYS)
-        amt_var = _find_var(AMT_KEYS)
-        loc_var = _find_var(LOC_KEYS)
-        ifa_var = _find_var(IFA_KEYS)
-
-        if not (pct_var and amt_var and loc_var and ifa_var):
-            return
+        def format_phone_number(*_):
+            phone_var = self.vars.get("Tele No")
+            phone = self.model._fmt_phone(phone_var.get())
+            if phone is not None:
+                phone_var.set(phone)
         
+        def format_fee(*_):
+            pct_var = self.vars.get('Fee')
+            if not pct_var:
+                return
+            p = self.model._percent_to_float(pct_var.get())
+            pct_var.set(self.model._fmt_percent(p))
+
+        #money format: fee amount, LOC, initial funding
+        def format_money(key_var: tk.StringVar | None):
+            if not key_var:
+                return
+            f = self.model._money_to_float(key_var.get())
+            key_var.set(self.model._fmt_money(f))
+
+        #reg number format (delete anything but digits and dashes): routing, account, zip
+        def format_number(key_var: tk.StringVar | None):
+            if not key_var:
+                return
+            key_var.set(self.model._fmt_number(key_var.get()))
+
+        #Fee, Fee amount, and LOC: add trace to update other two, bind on focusout to format
         self._sync_guard = False
 
-        def format_initial_funding(*_):
+        def recompute_from_percent(
+                loc_var=self.vars.get('Line of Credit'),
+                pct_var=self.vars.get('Fee'),
+                amt_var=self.vars.get('Fee Amount')
+        ):
+            if not loc_var or not pct_var or not amt_var:
+                return
             if self._sync_guard:
                 return
             self._sync_guard = True
             try:
-                ifa = self._money_to_float(ifa_var.get())
-                if ifa is not None:
-                    ifa_var.set(self._fmt_money(ifa))
-            finally:
-                self._sync_guard = False
-
-        def recompute_from_percent(*_):
-            if self._sync_guard:
-                return
-            self._sync_guard = True
-            try:
-                loc = self._money_to_float(loc_var.get())
-                pct = self._percent_to_float(pct_var.get())
+                loc = self.model._money_to_float(loc_var.get())
+                pct = self.model._percent_to_float(pct_var.get())
                 if loc is not None and pct is not None:
                     fee_amount = loc * (pct / 100.0)
-                    amt_var.set(self._fmt_money(fee_amount))
-                    # ensure percent displays with %
-                    loc_var.set(self._fmt_money(loc))
-                    pct_var.set(self._fmt_percent(pct))
+                    amt_var.set(self.model._fmt_money(fee_amount)) # ensure percent displays with %
             finally:
                 self._sync_guard = False
 
-        def recompute_from_amount(*_):
+        def recompute_from_amount(
+                loc_var=self.vars.get('Line of Credit'),
+                pct_var=self.vars.get('Fee'),
+                amt_var=self.vars.get('Fee Amount')
+        ):
+            if not loc_var or not pct_var or not amt_var:
+                return
             if self._sync_guard:
                 return
             self._sync_guard = True
             try:
-                loc = self._money_to_float(loc_var.get())
-                amt = self._money_to_float(amt_var.get())
+                loc = self.model._money_to_float(loc_var.get())
+                amt = self.model._money_to_float(amt_var.get())
                 if loc not in (None, 0) and amt is not None:
                     pct = (amt / loc) * 100.0
-                    pct_var.set(self._fmt_percent(pct))
-                    amt_var.set(self._fmt_money(amt))
+                    pct_var.set(self.model._fmt_percent(pct))
             finally:
                 self._sync_guard = False
 
         def recompute_when_loc_changes(*_):
-            # If LOC changes, prefer recomputing amount from the existing percent
-            recompute_from_percent()
+            recompute_from_percent() # If LOC changes, prefer recomputing amount from the existing percent
 
-        # Initial normalization/compute once on load
-        recompute_from_percent()
+        #create dict to map field names to funcs for bind on focus out
+        BIND_MAPPING: dict[str, callable] = {
+            'Merchant Name': lambda *_: _fmt(self.vars.get('Merchant Name')),
+            'Tele No': format_phone_number,
+            'Fee': format_fee,
+            'Fee Amount': lambda *_: format_money(self.vars.get('Fee Amount')),
+            'EIN': format_ein,
+            'Merchant Address': lambda *_: _fmt(self.vars.get('Merchant Address')),
+            'City': lambda *_: _fmt(self.vars.get('City')),
+            'State': lambda *_: _fmt(self.vars.get('State')),
+            'Zip': lambda *_: format_number(self.vars.get('Zip')),
+            'Bank': lambda *_: _fmt(self.vars.get('Bank')),
+            'Routing Number': lambda *_: format_number(self.vars.get('Routing Number')),
+            'Account Number': lambda *_: format_number(self.vars.get('Account Number')),
+            'Line of Credit': lambda *_: format_money(self.vars.get('Line of Credit')),
+            'Initial Funding': lambda *_: format_money(self.vars.get('Initial Funding')),
+            'Print Name': lambda *_: _fmt(self.vars.get('Print Name')),
+            'Date': lambda *_: format_number(self.vars.get('Date'))
+        }
+        #another dict to map fields to traces on write
+        TRACE_MAPPING: dict[str, callable] = {
+            'Fee': lambda *_: recompute_from_percent(),
+            'Fee Amount': lambda *_: recompute_from_amount(),
+            'Line of Credit': recompute_when_loc_changes
+        }
 
-        # Wire traces for live updates
-        pct_var.trace_add("write", recompute_from_percent)
-        amt_var.trace_add("write", recompute_from_amount)
-        loc_var.trace_add("write", recompute_when_loc_changes)
-        ifa_var.trace_add("write", format_initial_funding)
+        for field in self.contract_fields: #for each field in fields
+            #get var and block from self.vars and self.blocks
+            var = self.vars.get(field)
+            block = self.blocks.get(field)
+            #get bind func and trace func if exists from mappings
+            bind_func = BIND_MAPPING.get(field)
+            trace_func = TRACE_MAPPING.get(field)
+            #bind format func on focusOut to block
+            if bind_func: block.bind("<FocusOut>", bind_func)
+            #add trace on write from mapping if exists
+            if trace_func: var.trace_add("write", trace_func)
+            #add trace on write to var for updating model
+            var.trace_add(
+                'write',
+                lambda *_: self.model.afs_data.__setitem__(field, var.get())
+            )
 
-    def _money_to_float(self, s: str | None) -> float | None:
-        if not s:
-            return None
-        # drop anything that isn't digit or dot/comma, then normalize commas
-        cleaned = re.sub(r"[^0-9.,-]", "", s)
-        # if both comma and dot appear, assume comma = thousands
-        if "," in cleaned and "." in cleaned:
-            cleaned = cleaned.replace(",", "")
-        else:
-            # if only comma appears, treat it as decimal
-            cleaned = cleaned.replace(",", ".")
-        try:
-            return float(cleaned)
-        except ValueError:
-            return None
-        
-    def _percent_to_float(self, s: str) -> float | None:
-        if s is None:
-            return None
-        s = s.strip()
-        if not s:
-            return None
-        s = s.replace('%', '').strip()
-        try:
-            return float(s) if s else None
-        except ValueError:
-            return None
-    
-    def _fmt_money(self, x: float | None) -> str:
-        if x is None:
-            return ""
-        return f"{x:,.2f}"
+        def format_all():
+            for key in BIND_MAPPING.keys():
+                BIND_MAPPING.get(key)()
+            for key in TRACE_MAPPING.keys():
+                TRACE_MAPPING.get(key)()
 
-    def _fmt_percent(self, x: float | None) -> str:
-        if x is None:
-            return ""
-        return f"{x:.1f}%"
-    
+        return format_all
+
 
 class LabeledEntry(ttk.Frame):
-    def __init__(self, parent, label, textvariable=None, width=32, **kwargs):
+    def __init__(self, parent, label, textvariable=None, width=32, values=None, **kwargs):
         super().__init__(parent, **kwargs)
         self.label = ttk.Label(self, text=label)
         self.label.grid(row=0, column=0, sticky="w", padx=(0, 8))
-        self.entry = ttk.Entry(self, textvariable=textvariable, width=width)
+        self.entry = None
+        if values is None:
+            self.entry = ttk.Entry(
+                self, 
+                textvariable=textvariable, 
+                width=width
+            )
+        else:
+            self.entry = ttk.Combobox(
+            self, 
+            textvariable=textvariable, 
+            width=width,
+            values=values,
+            state="readonly"
+        )
         self.entry.grid(row=0, column=1, sticky="ew")
         self.grid_columnconfigure(1, weight=1)
 
+class LabeledCombobox(ttk.Frame):
+    def __init__(self, parent, label, values, textvariable=None, width=32, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.label = ttk.Label(self, text=label)
+        self.label.grid(row=0, column=0, sticky="w", padx=(0, 8))
+        self.entry = ttk.Combobox(
+            self, 
+            textvariable=textvariable, 
+            width=width,
+            values=values,
+            state="readonly"
+        )
+        self.entry.grid(row=0, column=1, sticky="ew")
+        self.grid_columnconfigure(1, weight=1)

@@ -1,5 +1,4 @@
 import pprint
-import fitz
 import pdfplumber
 import re
 import random
@@ -9,7 +8,6 @@ import contextlib
 import csv
 import pandas as pd
 import datetime
-from pypdf import PdfReader
 
 TODAY = str(datetime.date.today())
 INLINE_SUBFIELDS = [
@@ -28,7 +26,7 @@ CONTRACT_FIELDS = [
     'Merchant Name:', 'Tele No:', 'Fee:', 'EIN:', 
     "Merchant Address:", "City:", "State:", "Zip:", 
     "Bank:", "Routing Number:", "Account Number:", 
-    "Line of Credit:", "initial funding:", 
+    "Line of Credit:", "Initial Funding:", 
     "Print Name:", "Date:"
 ]
 APPLICATION_FIELD_MAPPING = [
@@ -77,7 +75,7 @@ CONTRACT_FIELD_MAPPING = [
     (["Routing Number"], ["Routing Number"]),
     (["Account Number"], ["Account Number"]),
     (["Line of Credit", "LOC Amount"], ["Of The Line Of Credit Amount Of", "Line of Credit amount of"]),
-    (["initial funding", "Initial Funding"], ["initial funding", "Additional Funding Can Be Accepted After The Initial Funding", "No additional funding can be accepted after the initial funding"]),
+    (["Initial Funding"], ["initial funding", "initial funding of", "Additional Funding Can Be Accepted After The Initial Funding of", "No additional funding can be accepted after the initial funding of", "Additional Funding Can Be Accepted After The Initial Funding", "No additional funding can be accepted after the initial funding"]),
     (["Primary Owner Name", "Print Name"], ["Print Name", "owner name", "primary owner name", "primary owner name: first"])
 ]
 DEFAULT_VALUES = {
@@ -230,7 +228,7 @@ def extract_afs_data(file_path, document_purpose):
             full_Package = True
             afs_data = extract_from_full_package_csv(df)
     afs_data, missing_values = map_fields(afs_data, full_Package, field_mapping)
-    print(afs_data)
+    # print(afs_data)
     return afs_data, missing_values, ext, full_Package
 
 def extract_from_full_package_csv(df: pd.DataFrame):
@@ -272,11 +270,13 @@ def extract_from_contract(pdf_path):
         for page in pdf.pages:
             full_text += page.extract_text() + "\n"
     full_text = full_text.replace(' $', ':').replace('_', '').replace('M erchant', 'Merchant').replace('B ank', 'Bank')
-    full_text = full_text[:full_text.find("By signing")] + full_text[full_text.find("Line of Credit amount of"):full_text.find("for a term of")] + full_text[full_text.find("initial funding"):full_text.find("by Alternative Funding Solutions, Inc")] + full_text[full_text.find("agency that furnished same"):]
+    full_text = full_text.replace('Vanguard Capital Group', '').replace('Merchant and ACH Agreement', '')
+    full_text = full_text.replace('Merchant Name: ', f"Merchant Name: {full_text[:full_text.find('Merchant Name: ')]}".replace('\n', ' '))
+    full_text = full_text[:full_text.find("By signing")] + full_text[full_text.find("Line of Credit amount of"):full_text.find("for a term of")] + full_text[full_text.find("initial funding"):full_text.find("by Alternative Funding Solutions, Inc")] + full_text[full_text.find("Signature:"):]
     for key in CONTRACT_FIELDS:
         full_text = full_text.replace(key, f'\n{key}')
     full_text = full_text.replace('.00', '.00\n')
-    print(full_text)
+    # print(full_text)
     return extract_from_text(full_text)
 
 def extract_from_application(pdf_path):

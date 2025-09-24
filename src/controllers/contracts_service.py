@@ -21,9 +21,15 @@ class ContracstService(SubmissionService):
         for file in extracted_files:
             temp_file = self.model.resource_path("temp_upload.pdf")
             shutil.copy(file, temp_file)
-            likely_agreement_found = self.model.is_likely_agreement(temp_file) or self.model.is_likely_application(temp_file)
+            is_agreement = self.model.is_likely_agreement(temp_file)
+            is_application = self.model.is_likely_application(temp_file)
+            likely_agreement_found = is_agreement or is_application
             if likely_agreement_found:
                 likely_agreement = file
+                if is_application:
+                    self.model.document_type = 'Application'
+                if is_agreement:
+                    self.model.document_type = 'Contract'
             os.remove(temp_file)
                 
         if likely_agreement:

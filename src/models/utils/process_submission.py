@@ -3,10 +3,12 @@ from models.utils.overlay_default_vlaues_afs import overlay_default_values_afs
 from models.utils.redact_contact_info import redact_contact_info
 from models.utils.find_matching_folder import find_matching_folder
 from models.utils.generate_business_name import generate_business_name
+from models.utils.render_contract import generate_context, render_contract, convert_docx_to_pdf
 from models.utils.resource_path import resource_path
 from models.utils.migrate_to_drive import migrate_to_drive
 from models.utils.flatten_pdf import flatten_pdf
 from models.utils.fill_template import fill_pdf
+from docx2pdf import convert
 
 import os
 import re
@@ -17,7 +19,8 @@ NRS_TEMPLATE = resource_path("data/templates/applications/NRS Funding Applicatio
 ARF_TEMPLATE = resource_path("data/templates/applications/ARF Stella Application.pdf")
 
 # --- Contract Templates ---
-LOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/Line of Credit Agreement Master.pdf")
+# LOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/Line of Credit Agreement Master.pdf")
+LOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/Master Line of Credit Agreement - VCG.docx")
 AUTHORIZATION_FEE_SHEET_TEMPLATE = resource_path("data/templates/agreements/Authorization Fee Sheet.pdf")
 
 def prepare_submission(afs_path: str, drive, document_purpose):
@@ -119,6 +122,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     return attatchements
 
 def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name: str, customer_folder: str):
+    # loc_agreement = resource_path(f"data/uploads/Line of Credit Agreement - {bus_name}.pdf")
     loc_agreement = resource_path(f"data/uploads/Line of Credit Agreement - {bus_name}.pdf")
     fee_sheet = resource_path(f"data/uploads/Authorization Fee Sheet - {bus_name}.pdf")
 
@@ -128,15 +132,16 @@ def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name
     os.makedirs(customer_folder, exist_ok=True)
 
     # Generate LOC agreement
-    attatchements.append(
-        fill_pdf(
-            afs_data, 
-            loc_agreement,
-            LOC_AGREEMENT_TEMPLATE,
-            flatten=True,
-            sign=False
-        )
+    context = generate_context(afs_data)
+    contract_doc = render_contract(
+        LOC_AGREEMENT_TEMPLATE,
+        resource_path("data/uploads/temp.docx"),
+        context
     )
+    print(afs_data)
+    print(context)
+    convert_docx_to_pdf(contract_doc, loc_agreement, resource_path(os.path.join("integrations", "libreoffice", "program", "soffice.exe")))
+    attatchements.append(loc_agreement)
 
     # Generate Fee Sheet
     attatchements.append(

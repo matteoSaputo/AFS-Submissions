@@ -9,6 +9,11 @@ from views.components.spinner import Spinner
 
 BTN_COLOR = "#0F20B4"
 DND_BG_COLOR = "#f0f0f0"
+COMBOBOX_VALUES = {
+    'Fee': [f"{p/10}%" for p in range(0, 41)],
+    'Frequency': ["Weekly", "Daily", "Monthly"],
+    'Interest Rate': [1.00, 1.25, 1.50]
+}
 
 class ContractsPageOne(tk.Frame):
     def __init__(self, root, controller, model: MainModel, bg):
