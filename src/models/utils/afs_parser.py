@@ -164,7 +164,7 @@ def is_likely_agreement(file_path):
     except Exception as e:
         return False
 
-def is_likely_application(file_path):
+def is_likely_application(file_path: str):
     @contextlib.contextmanager
     def suppress_stdout_stderr():
         with open(os.devnull, 'w') as fnull:
@@ -177,7 +177,8 @@ def is_likely_application(file_path):
             finally:
                 sys.stdout = old_stdout
                 sys.stderr = old_stderr
-                
+    
+           
     try:
         if file_path.lower().endswith(".csv"): 
             with open(file_path, newline='', encoding='utf-8') as csvfile:

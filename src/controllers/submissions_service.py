@@ -19,7 +19,8 @@ class SubmissionService:
 
         likely_application = ""
         for file in extracted_files:
-            temp_file = self.model.resource_path("temp_upload.pdf")
+            ext = os.path.splitext(file)[1]
+            temp_file = self.model.resource_path(f"temp_upload.{ext}")
             shutil.copy(file, temp_file)
             # self.model.flatten_pdf(temp_file)
             likely_application_found = self.model.is_likely_application(temp_file)

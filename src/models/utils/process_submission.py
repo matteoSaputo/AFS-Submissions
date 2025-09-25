@@ -140,7 +140,7 @@ def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name
     )
     print(afs_data)
     print(context)
-    convert_docx_to_pdf(contract_doc, loc_agreement, resource_path(os.path.join("integrations", "libreoffice", "program", "soffice.exe")))
+    convert_docx_to_pdf(contract_doc, loc_agreement)
     attatchements.append(loc_agreement)
 
     # Generate Fee Sheet
