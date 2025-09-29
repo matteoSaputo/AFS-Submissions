@@ -205,5 +205,11 @@ class ContractsModel(SubmissionsModel):
                 words[i] = words[i].capitalize() if words[i].isalpha else words[i]
             if words[i].upper() in ACRONYMS: words[i] = words[i].upper()  
         result = " ".join(words)
+        return result
+    
+    def _fmt_state(self, s: str | None) -> str:
+        if not s:
+            return
+        result = self._capitalize_all(s)
         result = US_STATE_ABBREVIATION.get(result, result)
         return result
