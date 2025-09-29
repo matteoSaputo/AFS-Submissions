@@ -1,15 +1,25 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import font
 
 from models.contracts_model import ContractsModel
 from views.contracts_view import COMBOBOX_VALUES
 
 BTN_COLOR = "#0F20B4"
 DND_BG_COLOR = "#f0f0f0"
-CONTRACT_FIELDS = [
-    'Merchant Name', 'Tele No', 'Fee', 'Frequency', 'Interest Rate', 'Fee Amount', 'EIN', 
-    "Merchant Address", "City", "State", "Zip", "Bank", "Routing Number", "Account Number", 
-    "Line of Credit", "Initial Funding", "Print Name", "Date"
+CONTRACT_FIELDS_COLS = {
+    'Merchant Name': 0, 'Tele No': 0, 'Fee': 2, 'Frequency': 2, 'Interest Rate': 2, 'EIN': 0, 
+    "Merchant Address": 0, "City": 0, "State": 0, "Zip": 0, "Bank": 1, "Routing Number": 1, "Account Number": 1, 
+    "Initial Funding": 2, "Line of Credit": 2, 'Fee Amount': 2, "Print Name": 0, "Date": 2
+}
+BUSINESS_INFO = [
+    'Merchant Name', 'Tele No', 'EIN', "Merchant Address", "City", "State", "Zip", "Print Name"
+]
+BANK_INFO = [
+    "Bank", "Routing Number", "Account Number"
+]
+CONTRACT_INFO = [
+    'Fee', 'Frequency', 'Interest Rate', 'Fee Amount', "Line of Credit", "Initial Funding", "Date"
 ]
 SCREEN_ONE_VARS = [
     "Fee", "Frequency", "Interest Rate"
@@ -32,23 +42,33 @@ class ContractsPageTwo(tk.Frame):
         self.blocks: dict[str, LabeledEntry] = {}
 
         self.spinner_path = self.model.resource_path("assets/spinner.gif")
-        self.contract_fields = CONTRACT_FIELDS  # list of display labels
+        self.contract_fields = CONTRACT_FIELDS_COLS.keys()  # list of display labels
        
         # ---------- fields ----------
         self.fields = tk.Frame(self, bg=bg)
         self.fields.grid_columnconfigure(0, weight=1)
         self.fields.grid_columnconfigure(1, weight=2)
 
-        row = 0
+        bus_row = tk.IntVar(self, 0)
+        bank_row = tk.IntVar(self, 0)
+        con_row = tk.IntVar(self, 0)
+        curr_row = None
         for label in self.contract_fields:
             # normalize label -> key used in dict
             src_key = label.replace(":", "").strip()
             initial = self.data.get(src_key, "")
             sv = tk.StringVar(value=initial)
             values = COMBOBOX_VALUES.get(label, None)
-            block = LabeledEntry(self.fields, label=label, textvariable=sv, width=40, values=values)
-            block.grid(row=row, column=0, sticky="ew", padx=6, pady=4)
-            row += 1            
+            block = LabeledEntry(self.fields, label=label, textvariable=sv, values=values)
+            column = CONTRACT_FIELDS_COLS[label]
+            if label in BUSINESS_INFO:
+                curr_row = bus_row
+            elif label in BANK_INFO:
+                curr_row = bank_row
+            else:
+                curr_row = con_row
+            block.grid(row=curr_row.get(), column=column, sticky="ew", padx=6, pady=4)
+            curr_row.set(curr_row.get() + 1)            
 
             self.vars[src_key] = sv
             self.blocks[src_key] = block
@@ -60,7 +80,7 @@ class ContractsPageTwo(tk.Frame):
 
         # ---------- buttons ----------
         self.contract_button_frame = tk.Frame(self, bg=bg)
-        self.contract_button_frame.pack()
+        self.contract_button_frame.pack(side='bottom')
 
         self.generate_button = tk.Button(
             self.contract_button_frame,
@@ -101,7 +121,7 @@ class ContractsPageTwo(tk.Frame):
                 return
             key_var.set(self.model._capitalize_all(key_var.get()))
 
-        #unique format funcs: ein, phone, fee
+        #unique format funcs: ein, phone, fee, state
         def format_ein(*_):
             ein_var = self.vars.get("EIN")
             if not ein_var:
@@ -122,6 +142,12 @@ class ContractsPageTwo(tk.Frame):
                 return
             p = self.model._percent_to_float(pct_var.get())
             pct_var.set(self.model._fmt_percent(p))
+        
+        def format_state(*_):
+            state_var = self.vars.get("State")
+            state = self.model._fmt_state(state_var.get())
+            if state is not None:
+                state_var.set(state)
 
         #money format: fee amount, LOC, initial funding
         def format_money(key_var: tk.StringVar | None):
@@ -189,7 +215,7 @@ class ContractsPageTwo(tk.Frame):
             'EIN': format_ein,
             'Merchant Address': lambda *_: _fmt(self.vars.get('Merchant Address')),
             'City': lambda *_: _fmt(self.vars.get('City')),
-            'State': lambda *_: _fmt(self.vars.get('State')),
+            'State': format_state,
             'Zip': lambda *_: format_number(self.vars.get('Zip')),
             'Bank': lambda *_: _fmt(self.vars.get('Bank')),
             'Routing Number': lambda *_: format_number(self.vars.get('Routing Number')),
@@ -233,16 +259,18 @@ class ContractsPageTwo(tk.Frame):
 
 
 class LabeledEntry(ttk.Frame):
-    def __init__(self, parent, label, textvariable=None, width=32, values=None, **kwargs):
-        super().__init__(parent, **kwargs)
+    def __init__(self, parent, label, textvariable=None, width=25, height=45, values=None, **kwargs):
+        super().__init__(parent, width=width, height=height, **kwargs)
         self.label = ttk.Label(self, text=label)
         self.label.grid(row=0, column=0, sticky="w", padx=(0, 8))
+        large_font = font.Font(family="Helvetica", size=14)
         self.entry = None
         if values is None:
             self.entry = ttk.Entry(
                 self, 
                 textvariable=textvariable, 
-                width=width
+                width=width,
+                font=large_font
             )
         else:
             self.entry = ttk.Combobox(
@@ -250,22 +278,9 @@ class LabeledEntry(ttk.Frame):
             textvariable=textvariable, 
             width=width,
             values=values,
-            state="readonly"
+            state="readonly",
+            font=large_font
         )
-        self.entry.grid(row=0, column=1, sticky="ew")
+        self.entry.grid(row=1, column=0, sticky="ew")
         self.grid_columnconfigure(1, weight=1)
 
-class LabeledCombobox(ttk.Frame):
-    def __init__(self, parent, label, values, textvariable=None, width=32, **kwargs):
-        super().__init__(parent, **kwargs)
-        self.label = ttk.Label(self, text=label)
-        self.label.grid(row=0, column=0, sticky="w", padx=(0, 8))
-        self.entry = ttk.Combobox(
-            self, 
-            textvariable=textvariable, 
-            width=width,
-            values=values,
-            state="readonly"
-        )
-        self.entry.grid(row=0, column=1, sticky="ew")
-        self.grid_columnconfigure(1, weight=1)
