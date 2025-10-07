@@ -1,5 +1,7 @@
 import os
+import re
 from pdfrw import PdfReader, PdfWriter, PdfDict, PdfObject, PdfString
+import pprint
 
 from models.utils.resource_path import resource_path
 from models.utils.insert_script_signature import insert_script_signature
@@ -12,15 +14,16 @@ def fill_pdf(afs_data: dict, output_path, template_path, sig_coords=(0, 0, 0, 0)
     pdf = PdfReader(template_path)
     if pdf.Root.AcroForm:
         pdf.Root.AcroForm.update(PdfDict(NeedAppearances=PdfObject('true')))
-
     for page in pdf.pages:
         annotations = page.get('/Annots')
         if annotations:
             for annotation in annotations:
                 if annotation['/Subtype'] == '/Widget':
                     field = annotation.get('/T')
-                    if field:
-                        field_name = field[1:-1].strip()  # strip parentheses and blanks
+                    if not field:
+                        field = annotation.get('/Parent').get('/T')
+                    if field: 
+                        field_name = field[1:-1].strip() # strip parentheses and blanks
                         if field_name in afs_data:
                             value = afs_data[field_name]
                             if value:
@@ -31,13 +34,13 @@ def fill_pdf(afs_data: dict, output_path, template_path, sig_coords=(0, 0, 0, 0)
     if flatten:
         flatten_pdf_preserving_fields(resource_path("temp.pdf"), output_path)
     else:
-        os.replace(resource_path("temp.pdf"), output_path)
+        os.rename(resource_path("temp.pdf"), output_path)
 
     if sign:
         insert_script_signature(
             output_path, 
             resource_path("temp.pdf"), 
-            afs_data["Primary Owner Name"],
+            afs_data["Owner Name"],
             sig_coords
         )
         os.replace(resource_path("temp.pdf"), output_path)
@@ -47,4 +50,3 @@ def fill_pdf(afs_data: dict, output_path, template_path, sig_coords=(0, 0, 0, 0)
         os.remove(resource_path("temp.pdf"))
 
     return output_path
-

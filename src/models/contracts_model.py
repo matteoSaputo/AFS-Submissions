@@ -96,6 +96,7 @@ class ContractsModel(SubmissionsModel):
 
     def process_submission(self):
         self.afs_data["Interest Rate"] = INTEREST_RATE_MAPPING[self.afs_data["Interest Rate"]]
+        self.afs_data["Frequency"] = self.afs_data["Frequency"].lower()
         return _process_contracts(
             self.selected_application_file,
             self.uploaded_files,
@@ -106,14 +107,14 @@ class ContractsModel(SubmissionsModel):
     
     def _assign_vars(self):
         self.business_name = self.afs_data["Merchant Name"]
-        self.phone = self.afs_data["Phone"]
+        self.phone = self.afs_data["Tele No"]
         self.ein = self.afs_data["EIN"]
-        self.routing_number = self.afs_data["Routing Number"]
-        self.account_number = self.afs_data["Account Number"]
+        self.routing_number = self.afs_data["Routing"]
+        self.account_number = self.afs_data["Account"]
         self.bank_name = self.afs_data["Bank"]
-        self.loc_amount = self.afs_data["LOC Amount"]
+        self.loc_amount = self.afs_data["Line of Credit"]
         self.funding_amout = self.afs_data["Initial Funding"]
-        self.owner_name = self.afs_data["Primary Owner Name"]
+        self.owner_name = self.afs_data["Print Name"]
         self.date = self.afs_data["Date"]  
     
     def _money_to_float(self, s: str | None) -> float | None:
@@ -150,12 +151,12 @@ class ContractsModel(SubmissionsModel):
         return f"{x:,.2f}"
 
     def _fmt_percent(self, x: float | None) -> str:
-        if not x:
+        if x is None:
             return ""
         return f"{x:.1f}%"
     
     def _fmt_phone(self, x: str | None) -> str:
-        if not x:
+        if x is None:
             return ""
         digits = re.sub(r"\D", "", x)
 
@@ -178,7 +179,7 @@ class ContractsModel(SubmissionsModel):
         return formatted
     
     def _fmt_ein(self, x: str | None) -> str:
-        if not x:
+        if x is None:
             return ""
         if len(x) <= 2:
             return x
@@ -189,7 +190,7 @@ class ContractsModel(SubmissionsModel):
         return formatted
     
     def _fmt_number(self, num: str | None) -> str:
-        if not num:
+        if num is None:
             return ""
         return re.sub(r'[^0-9-/]', '', num)
     
@@ -197,7 +198,7 @@ class ContractsModel(SubmissionsModel):
         return sum(1 for ch in word if ch.isupper())
     
     def _capitalize_all(self, x: str | None) -> str:
-        if not x:
+        if x is None:
             return "" 
         words = re.sub(r'[^\w\s]', '', x, flags=re.UNICODE).split(' ')
         for i in range(len(words)):
@@ -208,8 +209,8 @@ class ContractsModel(SubmissionsModel):
         return result
     
     def _fmt_state(self, s: str | None) -> str:
-        if not s:
-            return
+        if s is None:
+            return ""
         result = self._capitalize_all(s)
         result = US_STATE_ABBREVIATION.get(result, result)
         return result

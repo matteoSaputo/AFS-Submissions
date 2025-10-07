@@ -9,14 +9,14 @@ BTN_COLOR = "#0F20B4"
 DND_BG_COLOR = "#f0f0f0"
 CONTRACT_FIELDS_COLS = {
     'Merchant Name': 0, 'Tele No': 0, 'Fee': 2, 'Frequency': 2, 'Interest Rate': 2, 'EIN': 0, 
-    "Merchant Address": 0, "City": 0, "State": 0, "Zip": 0, "Bank": 1, "Routing Number": 1, "Account Number": 1, 
+    "Merchant Address": 0, "City": 0, "State": 0, "Zip": 0, "Bank": 1, "Routing": 1, "Account": 1, 
     "Initial Funding": 2, "Line of Credit": 2, 'Fee Amount': 2, "Print Name": 0, "Date": 2
 }
 BUSINESS_INFO = [
     'Merchant Name', 'Tele No', 'EIN', "Merchant Address", "City", "State", "Zip", "Print Name"
 ]
 BANK_INFO = [
-    "Bank", "Routing Number", "Account Number"
+    "Bank", "Routing", "Account"
 ]
 CONTRACT_INFO = [
     'Fee', 'Frequency', 'Interest Rate', 'Fee Amount', "Line of Credit", "Initial Funding", "Date"
@@ -244,9 +244,11 @@ class ContractsPageTwo(tk.Frame):
             #add trace on write from mapping if exists
             if trace_func: var.trace_add("write", trace_func)
             #add trace on write to var for updating model
+            # suffix = " Number" if field in ["Account Number", "Routing Number"] else ""
+            model_field = field.replace(" Number", '') if field in ["Account Number", "Routing Number"] else field
             var.trace_add(
                 'write',
-                lambda *_: self.model.afs_data.__setitem__(field, var.get())
+                lambda *_: self.model.afs_data.__setitem__(model_field, var.get())
             )
 
         def format_all():

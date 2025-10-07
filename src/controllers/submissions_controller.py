@@ -118,12 +118,12 @@ class SubmissionsController:
         self.finalize_submission(use_existing=False)
 
     def finalize_submission(self, use_existing):
-        # try:
+        try:
             self.service.finalize_submission(use_existing)
             messagebox.showinfo("Success", "Submission processed successfully!")
             self.reset_folder_UI()
-        # except Exception as e:
-        #     messagebox.showerror("Error", f"Failed to process: {str(e)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to process: {str(e)}")
 
     def reset_folder_UI(self):
         self.service.reset_model_state()

@@ -9,12 +9,13 @@ import csv
 import pandas as pd
 import datetime
 
-TODAY = str(datetime.date.today())
+from models.utils.mappings import APPLICATION_FIELD_MAPPING, CONTRACT_FIELD_MAPPING
+
 INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"
 ]
 SECTION_HEADINGS = [
-    "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
+    "OWNER INFORMATION", "CO-OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
 ]
 CSV_KEYWORDS = [
     "Business", "Owner"
@@ -23,63 +24,15 @@ AGREEMENT_KEYWORDS = [
     "Agreement", "Vanguard"
 ]
 CONTRACT_FIELDS = [
-    'Merchant Name:', 'Tele No:', 'Fee:', 'EIN:', 
-    "Merchant Address:", "City:", "State:", "Zip:", 
-    "Bank:", "Routing Number:", "Account Number:", 
-    "Line of Credit:", "Initial Funding:", 
-    "Print Name:", "Date:"
+    'Merchant Name:', 'Tele No:', 'Fee:', 'EIN:', "Merchant Address:", "City:", "State:", "Zip:", 
+    "Bank:", "Routing Number:", "Account Number:", "Line of Credit:", "Initial Funding:", "Print Name:", "Date:"
 ]
-APPLICATION_FIELD_MAPPING = [
-    (["Business Legal Name", "LegalCorporate Name"], ["business name", "business legal name"]),
-    (["DBA", "DBA Name"], ["dba"]),
-    (["Entity Type", "Type of Entity LLC INC Sole Prop", "Legal Entity Type"], ["entity type"]),
-    (["Federal TaxID", "Federal Tax ID"], ["tax id", "ein", "e i n", "federal tax-id", "federal taxid", "federal tax id", "federal tax-i d", "federal tax i d"]),
-    (["Address", "Business Address", "Corporate Legal Address"], ["business address", "address", "address,", "business address street", "address street", "address street,", "business address: address line 1"]),
-    (["City"], ["city", "city,", "business city", "business city,", "business address: city"]),
-    (["State", "State of Incorporation", "State of Organization"], ["state", "state,", "business state", "business state,", "business address: state"]),
-    (["Zip", "Zip Code"], ["zip", "business zip", "business address: zip/postal code"]),
-    (["Business Start Date", "Date Business Started", "Date of Organization"], ["business start date", "start date"]),
-    (["Primary Owner Name", "Corporate OfficerOwner Name", "Print Name", "Name of Officer Signing Application", "Name of Principal OwnerGuarantor"], ["owner name", "primary owner name", "primary owner name: first"]),
-    (["SSN", "Social Sec", "Social Security Number"], ["ssn", "ssn ", "ssn  ", "s s n", "social", "social security number"]),
-    (["Ownership %", "Ownership"], ["ownership", "ownership %"]),
-    (["Date of Birth", "Date Of Birth"], ["date of birth", "birth date"]),
-    (["eMail"], ["business email", "email 1"]),
-    (["Personal eMail"], ["email", "email 2"]),
-    (["Personal Fax"], ["email 3"]),
-    (["Fax"], ["mobile 1"]),
-    (["Phone"], ["mobile"]),
-    (["Mobile Phone"], ["mobile 2", "cell phone"]),
-    (["Estimated FICO Score"], ["estimated credit score"]),
-    (["Purpose of Funds"], ["purpose of funds"]),
-    (["Address_2", "Busin ss Address", "Home Address"], ["home address", "home address,", "home address street", "home address street,", "home address: address line 1"]),
-    (["City_2"], ["home city", "home address: city"]),
-    (["State_2"], ["home state", "home address: state"]),
-    (["Zip_2", "Zip Code_2"], ["home zip", "home address: zip/postal Code"]),
-    (["Date", "Date_2"], ["date"]),
-    (["Business Description", "Describe your Business", "Type of Business"], ["business description"]),
-    (["Monthly Gross Revenue", "Annual Business Revenue", "Total Annual Sales"], ["monthly revenue", "annual business revenue"]),
-    (["Requested Funding Amount", "How much cash funding are you applying for", "Total Cash Needed"], ["requested funding amount"]),
-    (["Average Monthly Credit Card Volume", "CC Processing Monthly Volume"], ["average monthly credit card volume"]),
-    (["Outstanding Receivables"], ["outstanding receivables"])
-]
-CONTRACT_FIELD_MAPPING = [
-    (["Merchant Name", "Business Legal Name", ], ["Merchant Name", "Business Legal Name", "LegalCorporate Name", "business name", "business legal name"]),
-    (["Phone", "Tele No"], ["Phone", "Tele No", "mobile", "Mobile Phone", "mobile 2", "cell phone"]),
-    (["Fee"], ["fee", "Fee"]),
-    (["EIN"], ["tax id", "ein", "e i n", "federal tax-id", "federal taxid", "federal tax id", "federal tax-i d", "federal tax i d"]),
-    (["Merchant Address"], ["merchant address", "business address", "address", "address,", "business address street", "address street", "address street,", "business address: address line 1"]),
-    (["City"], ["city", "city,", "business city", "business city,", "business address: city"]),
-    (["State"], ["state", "state,", "business state", "business state,", "business address: state"]),
-    (["Zip", "Zip Code"], ["zip", "business zip", "business address: zip/postal code"]),
-    (["Bank"], ["Bank"]),
-    (["Routing Number"], ["Routing Number"]),
-    (["Account Number"], ["Account Number"]),
-    (["Line of Credit", "LOC Amount"], ["Of The Line Of Credit Amount Of", "Line of Credit amount of"]),
-    (["Initial Funding"], ["initial funding", "initial funding of", "Additional Funding Can Be Accepted After The Initial Funding of", "No additional funding can be accepted after the initial funding of", "Additional Funding Can Be Accepted After The Initial Funding", "No additional funding can be accepted after the initial funding"]),
-    (["Primary Owner Name", "Print Name"], ["Print Name", "owner name", "primary owner name", "primary owner name: first"])
+CO_OWNER_FIELDS = [
+    'Co-Owner Name', 'SSN', 'Estimated FICO Score', 'Date of Birth', 'Ownership %', 'Mobile Phone', 'Personal eMail', 'Personal Fax', 
+    'Address', 'City', 'State', 'Zip'
 ]
 DEFAULT_VALUES = {
-    "SSN": f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}",
+    # "SSN": f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}",
     "Date of Birth": "01/01/1980",
     "Business Start Date": "01/01/2020" 
 }
@@ -87,7 +40,7 @@ DEFAULT_VALUES = {
 def normalize_key(key: str):
     return key.strip().replace(",", "").replace("\xa0", "").lower()
 
-def map_fields(raw_data: dict, full_package: bool, field_mapping):
+def map_fields(raw_data: dict, full_package: bool, field_mapping: dict[str, list[str]]):
     if full_package:
         return raw_data, None
 
@@ -95,7 +48,8 @@ def map_fields(raw_data: dict, full_package: bool, field_mapping):
     result = {}
     missing = {}
 
-    for output_fields, input_aliases in field_mapping:
+    for out_field, input_aliases in field_mapping.items():
+    # for output_fields, input_aliases in field_mapping:
         matched_value = None
         for alias in input_aliases:
             norm_alias = normalize_key(alias)
@@ -103,26 +57,19 @@ def map_fields(raw_data: dict, full_package: bool, field_mapping):
                 matched_value = normalized_data[norm_alias]
                 break  # Stop on first match
 
-        for out_field in output_fields:            
-            if not matched_value or matched_value.strip() == "":
-                matched_value = DEFAULT_VALUES.get(out_field, None)
-                missing[out_field] = DEFAULT_VALUES.get(out_field, None)
+        # for out_field in output_fields:            
+        if not matched_value or matched_value.strip() == "":
+            matched_value = DEFAULT_VALUES.get(out_field, None)
+            missing[out_field] = DEFAULT_VALUES.get(out_field, None)
 
-        for out_field in output_fields:            
-            result[out_field] = matched_value
+        # for out_field in output_fields:            
+        result[out_field] = matched_value
     
-    # result["Business Legal Name"] = truncate_name_at_word(result.get("Business Legal Name", " "))
-    result['Date'] = TODAY
-    result["Title"] = "CEO"
-    result["Primary Owner Name"] = f"{result.get('Primary Owner Name', '')} {raw_data.get('Primary Owner Name: Last', '')}"
-
-
+    result['Date'] = datetime.date.today().strftime("%m/%d/%Y")
+    print(raw_data)
+    print('\n')
+    print(result)
     return result, missing
-
-# def normalize_field_name(field):
-#     # Insert space before capital letters that follow lowercase or other capitals
-#     spaced = re.sub(r'(?<=[a-zA-Z])(?=[A-Z])', ' ', field)
-#     return spaced.strip().title()
 
 def truncate_name_at_word(name, limit=40):
     if len(name) <= limit:
@@ -255,7 +202,7 @@ def extract_from_df_row(row):
     afs_data = {}
     matches = list(row.items())
     afs_data = extract_from_list(matches)
-    afs_data['Date'] = TODAY
+    afs_data['Date'] = str(datetime.date.today())
     return afs_data
 
 def extract_from_pdf(pdf_path, document_type):
@@ -273,7 +220,12 @@ def extract_from_contract(pdf_path):
     full_text = full_text.replace(' $', ':').replace('_', '').replace('M erchant', 'Merchant').replace('B ank', 'Bank')
     full_text = full_text.replace('Vanguard Capital Group', '').replace('Merchant and ACH Agreement', '')
     full_text = full_text.replace('Merchant Name: ', f"Merchant Name: {full_text[:full_text.find('Merchant Name: ')]}".replace('\n', ' '))
-    full_text = full_text[:full_text.find("By signing")] + full_text[full_text.find("Line of Credit amount of"):full_text.find("for a term of")] + full_text[full_text.find("initial funding"):full_text.find("by Alternative Funding Solutions, Inc")] + full_text[full_text.find("Signature:"):]
+    full_text = " ".join([
+        full_text[:full_text.find("By signing")],
+        full_text[full_text.find("Line of Credit amount of"):full_text.find("for a term of")],
+        full_text[full_text.find("initial funding"):full_text.find("by Alternative Funding Solutions, Inc")],
+        full_text[full_text.find("Signature:"):]
+    ])
     for key in CONTRACT_FIELDS:
         full_text = full_text.replace(key, f'\n{key}')
     full_text = full_text.replace('.00', '.00\n')
@@ -286,12 +238,38 @@ def extract_from_application(pdf_path):
         for page in pdf.pages:
             full_text += page.extract_text() + "\n"
     start = full_text.find("BUSINESS INFORMATION")
+    bus_info = full_text[
+        start:
+        full_text.find("OWNER INFORMATION")
+    ].replace('DBA', '*DBA').replace('Fax', '*Fax')
+    owner_info = full_text[
+        full_text.find("OWNER INFORMATION"):
+        full_text.find("CO-OWNER INFORMATION")
+    ]
+    co_owner_info = full_text[
+        full_text.find("CO-OWNER INFORMATION"):
+        full_text.find("FUNDING INFORMATION")
+    ]
+    funding_info = full_text[
+        full_text.find("FUNDING INFORMATION"):
+        full_text.find("By signing below,")
+    ].replace('Description', '*Description')
+    for field in CO_OWNER_FIELDS:
+        co_owner_info = co_owner_info.replace(field, f"*{field}")
+    full_text = " ".join([
+        bus_info,
+        owner_info,
+        co_owner_info,
+        funding_info
+    ])
+    full_text = full_text.replace('Personal Fax', '*Personal Fax')
+    full_text = full_text.replace('Suite/Floor', '*Suite/Floor')
+    full_text = full_text.replace('*', '\n*').replace('$', '')
     if start != -1:
         full_text = full_text[start:]
-    full_text = full_text.replace('Fax', '*Fax')
-    return extract_from_text(full_text)
+    return extract_from_text(full_text, categorize=True)
 
-def extract_from_text(full_text):
+def extract_from_text(full_text, categorize=False):
     # Main pattern for extracting fields
     pattern = r"\*\s*(?P<field>[^:*]+?)\s*:\s*(?P<value>.*?)(?=\s*\*[^:*]+?:|\n|$)"
     matches = re.findall(pattern, full_text)
@@ -303,25 +281,30 @@ def extract_from_text(full_text):
         )
         matches = LABEL_VALUE.findall(full_text)
 
-    afs_data = extract_from_list(matches)
+    afs_data = extract_from_list(matches, categorize=categorize)
     return afs_data
 
-def extract_from_list(list):
+def extract_from_list(list, categorize):
     # Track what section we're in
     current_section = "Business"
-
     afs_data = {}
     for field, value in list:
-        # field = normalize_field_name(str(field.strip()))
         field = str(field.strip())
         value = clean_value(str(value))
 
         # Detect section change
-        if field.lower() == "primary owner name":
-            current_section = "Home"  # Switch context to Owner/Home
+        if "owner " in field.lower():
+            current_section = "Owner"  # Switch context to Owner
+        if "co-owner " in field.lower():
+            current_section = "Co-Owner"
+        if "business " in field.lower():
+            current_section = "Business"
+
+        if not categorize:
+            current_section=""
 
         # Add section prefix to disambiguate duplicates
-        normalized_field = f"{current_section} {field}" if field in ["Address", "City", "State", "Zip"] else field
+        normalized_field = f"{current_section} {field}" if f"{current_section.lower()} " not in field.lower() else field
 
         if 'Address' in normalized_field and '\n' in value:
             address = value.split('\n')[:-1]
@@ -338,7 +321,7 @@ def extract_from_list(list):
                 afs_data.update(split_inline_fields(f"{current_section} {address_field}", address_value, INLINE_SUBFIELDS))
         else:
             afs_data.update(split_inline_fields(normalized_field, value, INLINE_SUBFIELDS))
-    
+
     return afs_data
 
 def track_missing_values(afs_data: dict):

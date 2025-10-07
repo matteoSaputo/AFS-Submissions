@@ -8,18 +8,17 @@ from models.utils.resource_path import resource_path
 from models.utils.migrate_to_drive import migrate_to_drive
 from models.utils.flatten_pdf import flatten_pdf
 from models.utils.fill_template import fill_pdf
-from docx2pdf import convert
 
 import os
 import re
 
 # --- Aplication Templates --- 
-AFS_TEMPLATE = resource_path("data/templates/applications/AFS Application (Fillable).pdf")
-NRS_TEMPLATE = resource_path("data/templates/applications/NRS Funding Application.pdf")
-ARF_TEMPLATE = resource_path("data/templates/applications/ARF Stella Application.pdf")
+AFS_TEMPLATE = resource_path("data/templates/applications/New Official Business Application (Fillable).pdf")
+NRS_TEMPLATE = resource_path("data/templates/applications/NRS Funding Application (Fillable).pdf")
+ARF_TEMPLATE = resource_path("data/templates/applications/ARF Stella Application (Fillable).pdf")
+FUNDSHOP_TEMPLATE = resource_path("data/templates/applications/Fundshop Funding Application (Fillable).pdf")
 
 # --- Contract Templates ---
-# LOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/Line of Credit Agreement Master.pdf")
 LOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/Master Line of Credit Agreement - VCG.docx")
 AUTHORIZATION_FEE_SHEET_TEMPLATE = resource_path("data/templates/agreements/Authorization Fee Sheet.pdf")
 
@@ -27,9 +26,12 @@ def prepare_submission(afs_path: str, drive, document_purpose):
     afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path, document_purpose)
     if full_package:
         return afs_data, None, file_type, None, None, None, full_package
+    legal_name = afs_data.get("Business Legal Name")
+    if not legal_name:
+        legal_name = afs_data.get("Merchant Name")
     bus_name, matched_folder, match_score = prepare_fields(
         drive, 
-        legal_name=afs_data.get("Business Legal Name", ""),
+        legal_name=legal_name,
         dba_name=afs_data.get("DBA", "")
     )
     return afs_data, missing_values, file_type, bus_name, matched_folder, match_score, full_package
@@ -69,9 +71,9 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     business_sub_application = resource_path(f"data/uploads/Business Sub Application - {bus_name}.pdf")
     nrs_application = resource_path(f"data/uploads/NRS Funding Application - {bus_name}.pdf")
     arf_application = resource_path(f"data/uploads/ARF Stella Application - {bus_name}.pdf")
+    fundshop_application = resource_path(f"data/uploads/Fundshop Funding Application - {bus_name}.pdf")
 
     attatchements.remove(upload_path)
-
     if file_type == '.pdf':
         overlay_default_values_afs(upload_path, resource_path('temp_path.pdf'), missing_values)
         os.replace(resource_path('temp_path.pdf'), upload_path)
@@ -82,7 +84,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
                 afs_data, 
                 business_application, 
                 AFS_TEMPLATE, 
-                sig_coords=(180, 575, 360, 675),
+                sig_coords=(180, 685, 360, 785),
                 flatten=True
             )
         )
@@ -96,7 +98,7 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     attatchements.append(redact_contact_info(business_application, business_sub_application))
 
     # Fill and save NRS Application if not CA or VA
-    if not afs_data["State"] or afs_data.get("State", "").lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
+    if not afs_data["Business State"] or afs_data.get("Business State", "").lower() not in ['ca', 'california', 'cali', 'va', 'virginia']:
         attatchements.append(
             fill_pdf(
                 afs_data, 
@@ -112,6 +114,16 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
             afs_data,
             arf_application,
             ARF_TEMPLATE,
+            sig_coords=(120, 675, 300, 775),
+        )
+    )
+
+    # Fill and save fundshop application
+    attatchements.append(
+        fill_pdf(
+            afs_data,
+            fundshop_application,
+            FUNDSHOP_TEMPLATE,
             sig_coords=(120, 675, 300, 775),
         )
     )
@@ -138,21 +150,21 @@ def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name
         resource_path("data/uploads/temp.docx"),
         context
     )
-    print(afs_data)
     print(context)
     convert_docx_to_pdf(contract_doc, loc_agreement)
     attatchements.append(loc_agreement)
-
+    
     # Generate Fee Sheet
-    attatchements.append(
-        fill_pdf(
-            afs_data, 
-            fee_sheet,
-            AUTHORIZATION_FEE_SHEET_TEMPLATE,
-            flatten=True,
-            sign=False
+    if not afs_data["Fee"] == '0.0%':
+        attatchements.append(
+            fill_pdf(
+                afs_data, 
+                fee_sheet,
+                AUTHORIZATION_FEE_SHEET_TEMPLATE,
+                flatten=True,
+                sign=False
+            )
         )
-    )
 
     migrate_to_drive(attatchements, customer_folder)
 
