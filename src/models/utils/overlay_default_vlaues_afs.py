@@ -1,6 +1,5 @@
 import fitz
 from models.utils.resource_path import resource_path
-from models.utils.flatten_pdf import flatten_pdf
 
 FIELD_CORRDS = {
     "SSN": (65, 280),                                

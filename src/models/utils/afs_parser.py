@@ -1,7 +1,6 @@
 import pprint
 import pdfplumber
 import re
-import random
 import os
 import sys
 import contextlib
@@ -15,7 +14,7 @@ INLINE_SUBFIELDS = [
     "DBA", "Suite/Floor", "Zip", "City", "State"
 ]
 SECTION_HEADINGS = [
-    "OWNER INFORMATION", "CO-OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
+    "OWNER INFORMATION", "FUNDING INFORMATION", "BUSINESS INFORMATION"
 ]
 CSV_KEYWORDS = [
     "Business", "Owner"
@@ -31,11 +30,6 @@ CO_OWNER_FIELDS = [
     'Co-Owner Name', 'SSN', 'Estimated FICO Score', 'Date of Birth', 'Ownership %', 'Mobile Phone', 'Personal eMail', 'Personal Fax', 
     'Address', 'City', 'State', 'Zip'
 ]
-DEFAULT_VALUES = {
-    # "SSN": f"{random.randint(100,999)}-{random.randint(10,99)}-{random.randint(1000,9999)}",
-    "Date of Birth": "01/01/1980",
-    "Business Start Date": "01/01/2020" 
-}
 
 def normalize_key(key: str):
     return key.strip().replace(",", "").replace("\xa0", "").lower()
@@ -59,8 +53,8 @@ def map_fields(raw_data: dict, full_package: bool, field_mapping: dict[str, list
 
         # for out_field in output_fields:            
         if not matched_value or matched_value.strip() == "":
-            matched_value = DEFAULT_VALUES.get(out_field, None)
-            missing[out_field] = DEFAULT_VALUES.get(out_field, None)
+
+            missing[out_field] = None
 
         # for out_field in output_fields:            
         result[out_field] = matched_value
@@ -284,7 +278,7 @@ def extract_from_text(full_text, categorize=False):
     afs_data = extract_from_list(matches, categorize=categorize)
     return afs_data
 
-def extract_from_list(list, categorize):
+def extract_from_list(list, categorize=True):
     # Track what section we're in
     current_section = "Business"
     afs_data = {}
