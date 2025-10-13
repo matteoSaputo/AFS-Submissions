@@ -144,13 +144,14 @@ def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name
     os.makedirs(customer_folder, exist_ok=True)
 
     # Generate LOC agreement
+    print(afs_data)
     context = generate_context(afs_data)
+    print(context)
     contract_doc = render_contract(
         LOC_AGREEMENT_TEMPLATE,
         resource_path("data/uploads/temp.docx"),
         context
     )
-    print(context)
     convert_docx_to_pdf(contract_doc, loc_agreement)
     attatchements.append(loc_agreement)
     

@@ -2,9 +2,7 @@ import fitz
 from models.utils.resource_path import resource_path
 
 FIELD_CORRDS = {
-    "SSN": (65, 280),                                
-    "Date Of Birth": (305, 280),
-    "Business Start Date": (325, 180)
+
 }
 
 

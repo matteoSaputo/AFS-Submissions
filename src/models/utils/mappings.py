@@ -495,7 +495,7 @@ CONTRACT_FIELD_MAPPING: dict[str, list[str]] = {
         "Additional Funding Can Be Accepted After The Initial Funding", 
         "No additional funding can be accepted after the initial funding"
     ],
-    "Print Name": [
+    "Owner Name": [
         "primary owner name",
         "print name",
         "Owner Name", 
@@ -505,5 +505,11 @@ CONTRACT_FIELD_MAPPING: dict[str, list[str]] = {
         "Name of Officer Signing Application", 
         "Name of Principal OwnerGuarantor", 
         "primary owner name: first"
-    ]
+    ],
+    "Co-Owner Name": [
+        "Co-Owner Name", 
+        "Primary Co-Owner Name", 
+        "Corporate OfficerCo-Owner Name", 
+        "primary Co-Owner name: first"
+    ],
 }

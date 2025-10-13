@@ -10,10 +10,10 @@ DND_BG_COLOR = "#f0f0f0"
 CONTRACT_FIELDS_COLS = {
     'Merchant Name': 0, 'Tele No': 0, 'Fee': 2, 'Frequency': 2, 'Interest Rate': 2, 'EIN': 0, 
     "Merchant Address": 0, "City": 0, "State": 0, "Zip": 0, "Bank": 1, "Routing": 1, "Account": 1, 
-    "Initial Funding": 2, "Line of Credit": 2, 'Fee Amount': 2, "Print Name": 0, "Date": 2
+    "Initial Funding": 2, "Line of Credit": 2, 'Fee Amount': 2, "Owner Name": 0, "Co-Owner Name": 0,
 }
 BUSINESS_INFO = [
-    'Merchant Name', 'Tele No', 'EIN', "Merchant Address", "City", "State", "Zip", "Print Name"
+    'Merchant Name', 'Tele No', 'EIN', "Merchant Address", "City", "State", "Zip", "Owner Name", "Co-Owner Name"
 ]
 BANK_INFO = [
     "Bank", "Routing", "Account"
@@ -119,6 +119,11 @@ class ContractsPageTwo(tk.Frame):
         def _fmt(key_var: tk.StringVar | None):
             if not key_var:
                 return
+            key_var.set(self.model._format(key_var.get()))
+
+        def _fmt_capitalize(key_var: tk.StringVar | None):
+            if not key_var:
+                return
             key_var.set(self.model._capitalize_all(key_var.get()))
 
         #unique format funcs: ein, phone, fee, state
@@ -208,7 +213,7 @@ class ContractsPageTwo(tk.Frame):
 
         #create dict to map field names to funcs for bind on focus out
         BIND_MAPPING: dict[str, callable] = {
-            'Merchant Name': lambda *_: _fmt(self.vars.get('Merchant Name')),
+            'Merchant Name': lambda *_: _fmt_capitalize(self.vars.get('Merchant Name')),
             'Tele No': format_phone_number,
             'Fee': format_fee,
             'Fee Amount': lambda *_: format_money(self.vars.get('Fee Amount')),
@@ -217,12 +222,13 @@ class ContractsPageTwo(tk.Frame):
             'City': lambda *_: _fmt(self.vars.get('City')),
             'State': format_state,
             'Zip': lambda *_: format_number(self.vars.get('Zip')),
-            'Bank': lambda *_: _fmt(self.vars.get('Bank')),
+            'Bank': lambda *_: _fmt_capitalize(self.vars.get('Bank')),
             'Routing Number': lambda *_: format_number(self.vars.get('Routing Number')),
             'Account Number': lambda *_: format_number(self.vars.get('Account Number')),
             'Line of Credit': lambda *_: format_money(self.vars.get('Line of Credit')),
             'Initial Funding': lambda *_: format_money(self.vars.get('Initial Funding')),
-            'Print Name': lambda *_: _fmt(self.vars.get('Print Name')),
+            'Owner Name': lambda *_: _fmt(self.vars.get('Owner Name')),
+            'Co-Owner Name': lambda *_: _fmt(self.vars.get('Co-Owner Name')),
             'Date': lambda *_: format_number(self.vars.get('Date'))
         }
         #another dict to map fields to traces on write

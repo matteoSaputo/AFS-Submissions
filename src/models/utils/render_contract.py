@@ -1,6 +1,7 @@
 from docxtpl import DocxTemplate
 from models.utils.lo_manager import ensure_lo_started, get_profile_dir, find_soffice
 import os, subprocess, tempfile, time
+from markupsafe import escape
 
 def render_contract(template_path, out_docx, context):
     doc = DocxTemplate(template_path)
@@ -11,8 +12,8 @@ def render_contract(template_path, out_docx, context):
 def generate_context(afs_data: dict[str, str]):
     context = {}
     for key, value in afs_data.items():
-        placeholder = key.replace(' Number', '').replace(' ', '_').upper().strip()
-        context.update({placeholder: value})
+        placeholder = key.replace(' Number', '').replace(' ', '_').replace('-', '_').upper().strip()
+        context.update({placeholder: "" if value is None else str(escape(value))})
     return context
 
 def _abs(p): return os.path.abspath(p)

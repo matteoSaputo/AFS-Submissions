@@ -10,7 +10,10 @@ def migrate_to_drive(files, drive):
             continue
         if os.path.splitext(file)[1] == '.pdf':
             if "application" not in file.lower():
-                flatten_pdf(file, file)
+                try:
+                    flatten_pdf(file, file)
+                except Exception as e:
+                    print(f"Failed to flatten during migration: {file}", e)
         new_path = os.path.join(drive, os.path.basename(file))
         if os.path.exists(new_path):
             os.unlink(new_path)

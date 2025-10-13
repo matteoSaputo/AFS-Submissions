@@ -84,6 +84,7 @@ class ContractsModel(SubmissionsModel):
         self.loc_amount = None
         self.funding_amout = None
         self.owner_name = ""
+        self.co_owner_name = ""
         self.date = ""
         self.document_type = ""
 
@@ -114,7 +115,8 @@ class ContractsModel(SubmissionsModel):
         self.bank_name = self.afs_data["Bank"]
         self.loc_amount = self.afs_data["Line of Credit"]
         self.funding_amout = self.afs_data["Initial Funding"]
-        self.owner_name = self.afs_data["Print Name"]
+        self.owner_name = self.afs_data["Owner Name"]
+        self.co_owner_name = self.afs_data.get("Co-Owner Name")
         self.date = self.afs_data["Date"]  
     
     def _money_to_float(self, s: str | None) -> float | None:
@@ -200,13 +202,26 @@ class ContractsModel(SubmissionsModel):
     def _capitalize_all(self, x: str | None) -> str:
         if x is None:
             return "" 
-        words = re.sub(r'[^\w\s]', '', x, flags=re.UNICODE).split(' ')
+        words = x.split(' ')
         for i in range(len(words)):
             if self._count_capitals(words[i]) <= 1: 
                 words[i] = words[i].capitalize() if words[i].isalpha else words[i]
             if words[i].upper() in ACRONYMS: words[i] = words[i].upper()  
         result = " ".join(words)
         return result
+    
+    def _elim_special_chars(self, x: str | None) -> str:
+        if x is None:
+            return ""
+        res = re.sub(r'[^\w\s]', '', x, flags=re.UNICODE)
+        return res
+    
+    def _format(self, x: str | None) -> str:
+        if x is None:
+            return ""
+        no_spec_chars = self._elim_special_chars(x)
+        formatted = self._capitalize_all(no_spec_chars)
+        return formatted
     
     def _fmt_state(self, s: str | None) -> str:
         if s is None:

@@ -218,11 +218,12 @@ def extract_from_contract(pdf_path):
         full_text[:full_text.find("By signing")],
         full_text[full_text.find("Line of Credit amount of"):full_text.find("for a term of")],
         full_text[full_text.find("initial funding"):full_text.find("by Alternative Funding Solutions, Inc")],
+        full_text[full_text.find("Owner Name:"):],
         full_text[full_text.find("Signature:"):]
     ])
     for key in CONTRACT_FIELDS:
         full_text = full_text.replace(key, f'\n{key}')
-    full_text = full_text.replace('.00', '.00\n')
+    full_text = full_text.replace('.00', '.00\n').replace('Signature', '\nSignature')
     # print(full_text)
     return extract_from_text(full_text)
 
