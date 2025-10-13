@@ -1,22 +1,19 @@
 import os
 
 # Import super class
-from models.main.main_model import MainModel
+from models.main_model import MainModel
 
 # Import relevant business logic modules
 from models.utils.process_submission import process_submission as _process_submission, prepare_submission as _prepare_submission
 from models.utils.afs_parser import is_likely_application as _is_likely_application
 from models.utils.extract_zip import extract_zip as _extract_zip
-from models.utils.clean_uploads_folder import clean_uploads as _clean_uploads
+from models.utils.flatten_pdf import flatten_pdf as _flatten_pdf, flatten_pdf_preserving_fields as _flatten_pdf_preserving_fields
 
 class SubmissionsModel(MainModel):
-    def __init__(self, upload_dir):
+    def __init__(self):
         super().__init__()
-
-        self.upload_dir = self.resource_path(upload_dir)
         self.version = self.get_version()
-        self.drive = None
-        self.uploaded_files = []
+    
         self.selected_application_file = None
         self.application_file_type = None
         self.afs_data = None
@@ -42,8 +39,8 @@ class SubmissionsModel(MainModel):
             self.customer_folder
         )
     
-    def prepare_submission(self):
-        self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score, self.full_package = _prepare_submission(self.selected_application_file, self.drive)
+    def prepare_submission(self, document_purpose="Application"):
+        self.afs_data, self.missing_vlaues, self.application_file_type, self.bus_name, self.matched_folder, self.match_score, self.full_package = _prepare_submission(self.selected_application_file, self.drive, document_purpose)
         return self.afs_data, self.missing_vlaues, self.selected_application_file, self.bus_name, self.matched_folder, self.match_score, self.full_package
     
     def is_likely_application(self, file_path):
@@ -51,7 +48,9 @@ class SubmissionsModel(MainModel):
     
     def extract_zip(self, zip_path):
         return _extract_zip(zip_path)
-    
-    def clean_uploads(self):
-        return _clean_uploads(self.upload_dir)
 
+    def flatten_pdf(self, path):
+        return _flatten_pdf(path, path)
+    
+    def flatten_pdf_preserving_fields(self, path):
+        return _flatten_pdf_preserving_fields(path, path)

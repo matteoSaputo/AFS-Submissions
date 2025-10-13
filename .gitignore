@@ -160,9 +160,9 @@ mock_drive/
 # Local drive path
 drive_path.txt
 
-# binary executables
-*.exe
+# binary executables and integrations
 releases/
+integrations/
 
 # Vscode settings
 .vscode/

@@ -1,25 +1,29 @@
 import tkinter as tk
+from tkinter import filedialog, messagebox
 
-from controllers.submissions.submissions_controller import SubmissionsController
-from controllers.contracts.contracts_controller import ContractsController
-from controllers.email.email_controller import EmailController
+from controllers.submissions_controller import SubmissionsController
+from controllers.contracts_controller import ContractsController
+from controllers.email_controller import EmailController
 
-from models.main.main_model import MainModel
+from models.main_model import MainModel
 
-from views.main.footer import Footer
-from views.main.main_view import MainView
-from views.main.nav_bar import NavigationBar
+from views.components.footer import Footer
+from views.main_view import MainView
+from views.components.nav_bar import NavigationBar
 
 BG_COLOR = "#f7f7f7"
 DND_BG_COLOR = "#f0f0f0"
-FOOTER_BG_COLOR = "#387097"
+FOOTER_BG_COLOR = "#575757"
 NAVBAR_BG_COLOR = FOOTER_BG_COLOR
 
 SUB_COLOR = BG_COLOR
 
 class MainController:
     def __init__(self, root):        
+        self.root = root
+
         self.model = MainModel()
+        self.model.drive = self.load_drive_path()
 
         self.navbar = NavigationBar(root, NAVBAR_BG_COLOR)
         self.navbar.pack(fill="both", side='top')
@@ -61,3 +65,29 @@ class MainController:
             btn.config(state=tk.DISABLED)
             self.display_view(view)
         btn.config(command=display)
+
+    def load_drive_path(self):
+        if self.model.drive:
+            return self.model.drive
+
+        drive_path_file = self.model.get_user_data_path("drive_path.txt") 
+
+        # Ask user to select drive folder
+        self.prompt_for_drive()
+        drive_path = filedialog.askdirectory(title="Select Shared Drive Root Folder")
+        if not drive_path:
+            messagebox.showerror("Error", "Drive selection is required. Exiting.")
+            self.root.destroy()
+            exit()
+
+        # Save selected path
+        with open(drive_path_file, "w") as f:
+            f.write(drive_path)
+
+        return drive_path
+    
+    def prompt_for_drive(self):
+        messagebox.showinfo(
+            "Select Drive Folder",
+            "No drive selected.\n\nPlease choose your Google Drive shared folder before proceeding."
+        )

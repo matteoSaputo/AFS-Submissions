@@ -1,7 +1,7 @@
 import tkinter as tk
 
-from models.email.email_model import EmailModel
-from views.email.email_view import EmailView
+from models.email_model import EmailModel
+from views.email_view import EmailView
 
 class EmailController:
     def __init__(self, root, bg_color):

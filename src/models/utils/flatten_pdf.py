@@ -31,7 +31,7 @@ def flatten_pdf(input_path, output_path):
 
     return output_path
 
-def flatten_pdf_preserving_fields(input_path, output_path):
+def flatten_pdf_preserving_fields(input_path, output_path, font="lucida-console"):
     pdfmetrics.registerFont(TTFont("lucida-console", resource_path("data/fonts/LUCON.TTF")))
 
     # Load PDF and read form values
@@ -45,13 +45,24 @@ def flatten_pdf_preserving_fields(input_path, output_path):
         if page.Annots:
             for annot in page.Annots:
                 if annot.Subtype == '/Widget' and annot.T and annot.V:
-                    key = annot.T[1:-1]
+                    # da = str(annot.get('/DA'))
+                    # size = da.split("Tf")[0].split()[-1]
                     value = annot.V.to_unicode() if hasattr(annot.V, 'to_unicode') else str(annot.V)
+                    # print(f"{value}: {size}")
                     rect = annot.Rect
                     x, y = float(rect[0]), float(rect[1])
+                    height = float(rect[3]) - float(rect[1])
+                    width = float(rect[2]) - float(rect[0])
+                    # length = len(value)
+                    # font_size = min(0.8 * height, width/(1.8 * length))
 
-                    can.setFont("lucida-console", 9)
-                    can.drawString(x + 3, y + 4, value)
+                    unit_width = pdfmetrics.stringWidth(value, font, 1)
+                    size_fit_width = width / unit_width
+                    size_fit_height = 0.8 * height
+                    font_size = min(size_fit_width, size_fit_height)
+
+                    can.setFont(font, font_size)
+                    can.drawString(x, y+2, value)
 
         can.save()
         packet.seek(0)

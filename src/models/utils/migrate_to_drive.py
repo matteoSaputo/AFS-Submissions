@@ -1,11 +1,19 @@
 import os
 import shutil
 
+from models.utils.flatten_pdf import flatten_pdf_preserving_fields, flatten_pdf
+
 def migrate_to_drive(files, drive):
     # Move files from "files" list into folder "drive"
     for file in files:
         if not file or not os.path.exists(file):
             continue
+        if os.path.splitext(file)[1] == '.pdf':
+            if "application" not in file.lower():
+                try:
+                    flatten_pdf(file, file)
+                except Exception as e:
+                    print(f"Failed to flatten during migration: {file}", e)
         new_path = os.path.join(drive, os.path.basename(file))
         if os.path.exists(new_path):
             os.unlink(new_path)

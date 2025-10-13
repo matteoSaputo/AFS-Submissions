@@ -9,6 +9,8 @@ a = Analysis(
         ('data/uploads/*', 'data/uploads'),
         ('data/fonts/*', 'data/fonts'),
         ('data/templates/*', 'data/templates'),
+        ('data/templates/applications/*', 'data/templates/applications/'),
+        ('data/templates/agreements/*', 'data/templates/agreements/'),
         ('assets/*', 'assets'),
         ('assets/cats/*', 'assets/cats'),
         ('info/*', 'info')
