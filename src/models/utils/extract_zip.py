@@ -1,7 +1,25 @@
+"""
+extract_zip: Utility for extracting ZIP archives.
+
+Extracts all files from a ZIP archive to the same directory and returns a list of extracted file paths.
+"""
+
 import zipfile
 import os
 
 def extract_zip(zip_path):
+    """Extract all files from a ZIP archive.
+
+    Parameters
+    ----------
+    zip_path : str
+        Path to the ZIP archive.
+
+    Returns
+    -------
+    list
+        List of extracted file paths.
+    """
     extracted = []
     try:
         with zipfile.ZipFile(zip_path, 'r') as zip:

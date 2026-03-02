@@ -1,10 +1,28 @@
+"""
+generate_business_name: Utility for generating clean business names.
+
+Uses legal name and DBA, appending DBA only if sufficiently different.
+"""
+
 from rapidfuzz import fuzz
 import re
 
 def generate_business_name(legal_name, dba_name, threshold=85):
-    """
-    Generates a clean business name using legal name and DBA, 
-    only appending DBA if it's sufficiently different from legal name.
+    """Generate a clean business name using legal name and DBA.
+
+    Parameters
+    ----------
+    legal_name : str
+        Legal name of the business.
+    dba_name : str
+        DBA name of the business.
+    threshold : int, optional
+        Similarity threshold for appending DBA (default: 85).
+
+    Returns
+    -------
+    str
+        Cleaned business name.
     """
     # Sanitize both names
     legal_clean = re.sub(r'[\\/*?:."<>|]', "", legal_name.strip())

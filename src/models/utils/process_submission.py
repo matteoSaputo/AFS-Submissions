@@ -1,3 +1,9 @@
+"""
+process_submission: Utilities for preparing and processing AFS submissions.
+
+Handles extraction, overlaying defaults, redaction, folder matching, contract rendering, and migration to drive.
+"""
+
 from models.utils.afs_parser import extract_afs_data
 from models.utils.overlay_default_vlaues_afs import overlay_default_values_afs
 from models.utils.redact_contact_info import redact_contact_info
@@ -21,8 +27,25 @@ FUNDSHOP_TEMPLATE = resource_path("data/templates/applications/Fundshop Funding 
 # --- Contract Templates ---
 LOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/Master Line of Credit Agreement - VCG.docx")
 AUTHORIZATION_FEE_SHEET_TEMPLATE = resource_path("data/templates/agreements/Authorization Fee Sheet.pdf")
+HELOC_AGREEMENT_TEMPLATE = resource_path("data/templates/agreements/HELOC Agreement Template.pdf")
 
 def prepare_submission(afs_path: str, drive, document_purpose):
+    """Prepare submission data and related fields for processing.
+
+    Parameters
+    ----------
+    afs_path : str
+        Path to the AFS application file.
+    drive : str
+        Path to the drive folder.
+    document_purpose : str
+        Purpose of the document (e.g., application type).
+
+    Returns
+    -------
+    tuple
+        Extracted data, missing values, file type, business name, matched folder, match score, full package.
+    """
     afs_data, missing_values, file_type, full_package = extract_afs_data(afs_path, document_purpose)
     if full_package:
         return afs_data, None, file_type, None, None, None, full_package
@@ -37,6 +60,22 @@ def prepare_submission(afs_path: str, drive, document_purpose):
     return afs_data, missing_values, file_type, bus_name, matched_folder, match_score, full_package
 
 def prepare_fields(drive, legal_name, dba_name):
+    """Prepare business name and match folder for submission.
+
+    Parameters
+    ----------
+    drive : str
+        Path to the drive folder.
+    legal_name : str
+        Legal name of the business.
+    dba_name : str
+        DBA name of the business.
+
+    Returns
+    -------
+    tuple
+        Business name, matched folder, match score.
+    """
     # Create a cleaned business name
     if not legal_name and dba_name:
         bus_name = re.sub(r'[\\/*?:."<>|]', "", dba_name)
@@ -58,13 +97,28 @@ def prepare_fields(drive, legal_name, dba_name):
     return bus_name, matched_folder, match_score
 
 def process_submission(upload_path, attatchements: list, afs_data, missing_values, file_type, bus_name, customer_folder):
-    """
-    Takes in:
-    - upload_path: path to uploaded PDF (e.g., "./data/uploads/document.pdf")
-    - attatchements: list of uploaded attatchements
-    - afs_data: extracted data dictionary
-    - bus_name: sanitized business name string
-    - customer_folder: confirmed or created folder
+    """Process an AFS submission, generate PDFs, and move files to the customer folder.
+
+    Parameters
+    ----------
+    upload_path : str
+        Path to uploaded PDF or CSV.
+    attatchements : list
+        List of uploaded attachments.
+    afs_data : dict
+        Extracted data dictionary.
+    missing_values : dict
+        Dictionary of missing values.
+    file_type : str
+        File type (e.g., '.pdf', '.csv').
+    bus_name : str
+        Sanitized business name string.
+    customer_folder : str
+        Confirmed or created folder.
+    Returns
+    -------
+    list
+        List of processed attachment file paths.
     """
     # --- File Paths ---
     business_application = resource_path(f"data/uploads/Business Application - {bus_name}.pdf")
@@ -79,13 +133,15 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
         os.replace(resource_path('temp_path.pdf'), upload_path)
 
     if file_type == '.csv':
+        print(afs_data)
         attatchements.append(
             fill_pdf(
                 afs_data, 
                 business_application, 
                 AFS_TEMPLATE, 
                 sig_coords=(180, 685, 360, 785),
-                flatten=True
+                flatten=True,
+                signature=afs_data["Owner Name"] 
             )
         )
     else:
@@ -104,7 +160,8 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
                 afs_data, 
                 nrs_application, 
                 NRS_TEMPLATE, 
-                sig_coords=(120, 705, 300, 805), 
+                sig_coords=(120, 705, 300, 805),
+                signature=afs_data["Owner Name"] 
             )
         )
 
@@ -115,16 +172,21 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
             arf_application,
             ARF_TEMPLATE,
             sig_coords=(120, 675, 300, 775),
+            signature=afs_data["Owner Name"]
         )
     )
 
     # Fill and save fundshop application
+    names = afs_data["Owner Name"].split(" ")
+    initials_list = [name[0] for name in names]
+    initials = "".join(initials_list)
     attatchements.append(
         fill_pdf(
             afs_data,
             fundshop_application,
             FUNDSHOP_TEMPLATE,
-            sig_coords=(120, 675, 300, 775),
+            sig_coords=(100, 810, 280, 910),
+            signature=initials
         )
     )
 
@@ -134,9 +196,29 @@ def process_submission(upload_path, attatchements: list, afs_data, missing_value
     return attatchements
 
 def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name: str, customer_folder: str):
+    """Process a contract submission, generate agreements, and move files to the customer folder.
+
+    Parameters
+    ----------
+    upload_path : str
+        Path to uploaded contract file.
+    attatchements : list
+        List of uploaded attachments.
+    afs_data : dict
+        Extracted contract data.
+    bus_name : str
+        Sanitized business name string.
+    customer_folder : str
+        Confirmed or created folder.
+    Returns
+    -------
+    list
+        List of processed contract file paths.
+    """
     # loc_agreement = resource_path(f"data/uploads/Line of Credit Agreement - {bus_name}.pdf")
     loc_agreement = resource_path(f"data/uploads/Line of Credit Agreement - {bus_name}.pdf")
     fee_sheet = resource_path(f"data/uploads/Authorization Fee Sheet - {bus_name}.pdf")
+    heloc_agreement = resource_path(f"data/uploads/AFS Line of Credit - {bus_name}.pdf")
 
     attatchements.remove(upload_path)
 
@@ -152,16 +234,31 @@ def process_contracts(upload_path, attatchements: list, afs_data: dict, bus_name
         resource_path("data/uploads/temp.docx"),
         context
     )
-    convert_docx_to_pdf(contract_doc, loc_agreement)
-    attatchements.append(loc_agreement)
-    
-    # Generate Fee Sheet
-    if not afs_data["Fee"] == '0.0%':
+    if afs_data.get("Line of Credit") and afs_data.get("Initial Funding"):
+        convert_docx_to_pdf(contract_doc, loc_agreement)
+        attatchements.append(loc_agreement)
+        
+        # Generate Fee Sheet
+        if not afs_data["Fee"] == '0.0%':
+            attatchements.append(
+                fill_pdf(
+                    afs_data, 
+                    fee_sheet,
+                    AUTHORIZATION_FEE_SHEET_TEMPLATE,
+                    flatten=True,
+                    sign=False
+                )
+            )
+
+    # Generate HELOC agreement
+    if afs_data.get("HELOC Amount"):
+        if not afs_data.get("HELOC Rate"): 
+            afs_data["HELOC Rate"] = "WSJ Prime + 3-6%"
         attatchements.append(
             fill_pdf(
                 afs_data, 
-                fee_sheet,
-                AUTHORIZATION_FEE_SHEET_TEMPLATE,
+                heloc_agreement,
+                HELOC_AGREEMENT_TEMPLATE,
                 flatten=True,
                 sign=False
             )

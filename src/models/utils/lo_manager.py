@@ -1,3 +1,9 @@
+"""
+lo_manager: Utility for managing LibreOffice integration and locating soffice executables.
+
+Provides functions to find soffice, manage candidate paths, and handle LibreOffice startup and shutdown.
+"""
+
 import atexit
 import os
 import shutil
@@ -21,6 +27,18 @@ def _candidate_paths(base_dir):
     ]
 
 def find_soffice(explicit_path: str | None = None) -> str:
+    """Find the path to the LibreOffice soffice executable.
+
+    Parameters
+    ----------
+    explicit_path : str or None, optional
+        Explicit path to soffice (default: None).
+
+    Returns
+    -------
+    str
+        Path to the soffice executable.
+    """
     # 0) explicit and env
     cands = []
     if explicit_path:
@@ -69,12 +87,16 @@ def get_profile_dir():
     return base
 
 class LibreOfficeManager:
+    """Manager for starting and stopping a LibreOffice instance."""
+
     def __init__(self):
+        """Initialize the LibreOfficeManager, locating soffice and profile directory."""
         self.soffice = find_soffice()
         self.profile = get_profile_dir()
         self.proc: subprocess.Popen = None
 
     def start(self):
+        """Start LibreOffice in headless mode."""
         if self.proc and self.proc.poll() is None:
             return # already running
         profile_uri = "file:///" + self.profile.replace("\\", "/")
@@ -98,6 +120,7 @@ class LibreOfficeManager:
         time.sleep(0.8)
 
     def stop(self):
+        """Stop the running instance of LibreOffice, if any."""
         if self.proc and self.proc.poll() is None:
             try:
                 self.proc.terminate()
@@ -111,6 +134,7 @@ class LibreOfficeManager:
 
 _lo_mgr: LibreOfficeManager = None
 def ensure_lo_started():
+    """Ensure that a LibreOffice instance is running; start it if not."""
     global _lo_mgr
     if _lo_mgr is None:
         _lo_mgr = LibreOfficeManager()

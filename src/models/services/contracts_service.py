@@ -1,14 +1,46 @@
+"""
+contracts_service: Service layer for handling file operations in contracts.
+
+Handles extraction, copying, and identification of likely agreement or application files for contract submissions.
+"""
+
 import os
 import shutil
-from controllers.submissions_service import SubmissionService
+from models.services.submissions_service import SubmissionService
 from models.contracts_model import ContractsModel
 
 class ContracstService(SubmissionService):
+    """Service for file operations in contracts.
+
+    Parameters
+    ----------
+    model : ContractsModel
+        The contracts model instance.
+    """
+
     def __init__(self, model: ContractsModel):
+        """Initialize the ContracstService with the given contracts model.
+
+        Parameters
+        ----------
+        model : ContractsModel
+            The contracts model instance.
+        """
         super().__init__(model)
         self.model = model
 
     def handle_files(self, file_list):
+        """Handle file extraction, copying, and agreement/application detection.
+
+        Parameters
+        ----------
+        file_list : list
+            List of file paths to process.
+        Returns
+        -------
+        str
+            Path to the likely agreement or application file, if found.
+        """
         extracted_files = []
 
         for original_path in file_list:
@@ -48,7 +80,8 @@ class ContracstService(SubmissionService):
         return likely_agreement
     
     def reset_model_state(self):
-        self.model.business_name = ""
+        """Reset contract-specific model state and call parent reset."""
+        self.model.bus_name = ""
         self.model.phone = ""
         self.model.fee_percent = None
         self.model.ein = ""

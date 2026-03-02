@@ -1,10 +1,47 @@
+"""
+Spinner: Animated loading spinner for Tkinter UI.
+
+Loads and animates GIF frames using PIL and ImageTk. Used to indicate background processing or loading states.
+"""
+
 import threading
 import tkinter as tk
 from typing import Callable
 from PIL import Image, ImageTk
 
 class Spinner(tk.Canvas):
+    """Animated spinner widget for Tkinter.
+
+    Parameters
+    ----------
+    root : tk.Widget
+        Parent widget for the spinner.
+    spinner_path : str
+        Path to the spinner GIF file.
+    width : int
+        Width of the spinner canvas.
+    height : int
+        Height of the spinner canvas.
+    bg : str
+        Background color for the spinner.
+    """
+
     def __init__(self, root, spinner_path, width, height, bg):
+        """Initialize the Spinner widget and load GIF frames.
+
+        Parameters
+        ----------
+        root : tk.Widget
+            Parent widget for the spinner.
+        spinner_path : str
+            Path to the spinner GIF file.
+        width : int
+            Width of the spinner canvas.
+        height : int
+            Height of the spinner canvas.
+        bg : str
+            Background color for the spinner.
+        """
         # --- Spinner setup ---
         self.root = root
         self.spinner_path = spinner_path
@@ -36,6 +73,7 @@ class Spinner(tk.Canvas):
             pass
 
     def animate_spinner(self):
+        """Animate the spinner by cycling through GIF frames."""
         if not self.spinner_running:
             return
 
@@ -50,6 +88,7 @@ class Spinner(tk.Canvas):
         self.root.after(100, self.animate_spinner)
 
     def show_spinner(self):
+        """Display and start the spinner animation."""
         self.pack(side="bottom")
         if not self.spinner_running:
             self.spinner_running = True
@@ -57,10 +96,18 @@ class Spinner(tk.Canvas):
         self.root.update()
     
     def hide_spinner(self):
+        """Hide and stop the spinner animation."""
         self.pack_forget()
         self.spinner_running = False
         self.root.update()        
 
     def run_with_spinner(self, func: Callable):
+        """Run a function in a separate thread while showing the spinner.
+
+        Parameters
+        ----------
+        func : Callable
+            The function to execute while the spinner is shown.
+        """
         self.show_spinner()
         threading.Thread(target=lambda: func()).start()

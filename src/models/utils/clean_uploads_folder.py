@@ -1,7 +1,20 @@
+"""
+clean_uploads_folder: Utility for cleaning the uploads directory.
+
+Deletes all files and folders in the uploads directory except 'keep.txt'.
+"""
+
 import os
 import shutil
 
 def clean_uploads(upload_dir):
+    """Delete all files and folders in the uploads directory except 'keep.txt'.
+
+    Parameters
+    ----------
+    upload_dir : str
+        Path to the uploads directory.
+    """
     files_to_delete =[
         f for f in os.listdir(upload_dir) if f != "keep.txt"
     ]

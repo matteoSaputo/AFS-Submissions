@@ -1,3 +1,9 @@
+"""
+ContractsPageTwo: Tkinter frame for contract details and finalization.
+
+Displays fields for merchant, bank, and contract info, and provides UI for finalizing and resetting contract data.
+"""
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter import font
@@ -11,6 +17,7 @@ CONTRACT_FIELDS_COLS = {
     'Merchant Name': 0, 'Tele No': 0, 'Fee': 2, 'Frequency': 2, 'Interest Rate': 2, 'EIN': 0, 
     "Merchant Address": 0, "City": 0, "State": 0, "Zip": 0, "Bank": 1, "Routing": 1, "Account": 1, 
     "Initial Funding": 2, "Line of Credit": 2, 'Fee Amount': 2, "Owner Name": 0, "Co-Owner Name": 0,
+    "HELOC Amount": 2, "HELOC Rate": 2
 }
 BUSINESS_INFO = [
     'Merchant Name', 'Tele No', 'EIN', "Merchant Address", "City", "State", "Zip", "Owner Name", "Co-Owner Name"
@@ -19,14 +26,48 @@ BANK_INFO = [
     "Bank", "Routing", "Account"
 ]
 CONTRACT_INFO = [
-    'Fee', 'Frequency', 'Interest Rate', 'Fee Amount', "Line of Credit", "Initial Funding", "Date"
+    'Fee', 'Frequency', 'Interest Rate', 'Fee Amount', "Line of Credit", "Initial Funding", "HELOC Amount", "HELOC Rate", "Date"
 ]
 SCREEN_ONE_VARS = [
     "Fee", "Frequency", "Interest Rate"
 ]
 
 class ContractsPageTwo(tk.Frame):
+    """Frame for contract details and finalization.
+
+    Parameters
+    ----------
+    root : tk.Widget
+        Parent widget for this frame.
+    controller : MainController
+        The main controller for the application.
+    model : ContractsModel
+        The contracts model for contract data.
+    bg : str
+        Background color for the frame.
+    finalize_handler : Callable
+        Function to finalize contract data.
+    reset_ui_handler : Callable
+        Function to reset the UI.
+    """
     def __init__(self, root, controller, model: ContractsModel, bg, finalize_handler, reset_ui_handler):
+        """Initialize the ContractsPageTwo frame and its UI components.
+
+        Parameters
+        ----------
+        root : tk.Widget
+            Parent widget for this frame.
+        controller : MainController
+            The main controller for the application.
+        model : ContractsModel
+            The contracts model for contract data.
+        bg : str
+            Background color for the frame.
+        finalize_handler : Callable
+            Function to finalize contract data.
+        reset_ui_handler : Callable
+            Function to reset the UI.
+        """
         super().__init__(root)
         self.root = root
         self.bg_color = bg
@@ -141,8 +182,8 @@ class ContractsPageTwo(tk.Frame):
             if phone is not None:
                 phone_var.set(phone)
         
-        def format_fee(*_):
-            pct_var = self.vars.get('Fee')
+        def format_fee(key_var: tk.StringVar | None):
+            pct_var = key_var
             if not pct_var:
                 return
             p = self.model._percent_to_float(pct_var.get())
@@ -215,7 +256,7 @@ class ContractsPageTwo(tk.Frame):
         BIND_MAPPING: dict[str, callable] = {
             'Merchant Name': lambda *_: _fmt_capitalize(self.vars.get('Merchant Name')),
             'Tele No': format_phone_number,
-            'Fee': format_fee,
+            'Fee': lambda *_: format_fee(self.vars.get("Fee")),
             'Fee Amount': lambda *_: format_money(self.vars.get('Fee Amount')),
             'EIN': format_ein,
             'Merchant Address': lambda *_: _fmt(self.vars.get('Merchant Address')),
@@ -227,7 +268,9 @@ class ContractsPageTwo(tk.Frame):
             'Account Number': lambda *_: format_number(self.vars.get('Account Number')),
             'Line of Credit': lambda *_: format_money(self.vars.get('Line of Credit')),
             'Initial Funding': lambda *_: format_money(self.vars.get('Initial Funding')),
-            'Owner Name': lambda *_: _fmt(self.vars.get('Owner Name')),
+            'HELOC Amount' : lambda *_: format_money(self.vars.get("HELOC Amount")),
+            'HELOC Rate' : lambda *_: format_fee(self.vars.get('HELOC Rate')),
+            'Owner Name': lambda *_: _fmt_capitalize(self.vars.get('Owner Name')),
             'Co-Owner Name': lambda *_: _fmt(self.vars.get('Co-Owner Name')),
             'Date': lambda *_: format_number(self.vars.get('Date'))
         }

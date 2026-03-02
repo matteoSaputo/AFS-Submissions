@@ -1,3 +1,9 @@
+"""
+DropFrame: Drag-and-drop upload frame for AFS Submissions Tool.
+
+Handles file drops, upload management, and UI reset for submissions. Includes scrollable canvas for displaying uploaded files.
+"""
+
 import tkinter as tk
 import os
 from typing import Callable
@@ -7,6 +13,30 @@ from models.main_model import MainModel
 DND_BG_COLOR = "#f0f0f0"
 
 class DropFrame(tk.Frame):
+    """Frame for drag-and-drop file uploads.
+
+    Parameters
+    ----------
+    root : tk.Widget
+        Parent widget for the frame.
+    width : int
+        Width of the frame.
+    height : int
+        Height of the frame.
+    btn_color : str
+        Color for buttons in the frame.
+    model : MainModel
+        Application model for resource access.
+    upload_handler : Callable
+        Function to handle file uploads.
+    drop_handler : Callable
+        Function to handle file drops.
+    ui_reset_handler : Callable
+        Function to reset the UI.
+    delete_file_handler : Callable
+        Function to handle file deletion.
+    """
+
     def __init__(self, root, width, height, btn_color, model: MainModel, upload_handler: Callable, drop_handler: Callable, ui_reset_handler: Callable, delete_file_handler: Callable):
         self.max_visible_rows = 5
 
@@ -81,6 +111,13 @@ class DropFrame(tk.Frame):
         )
 
     def configure_dnd(self, widget: tk.Widget):
+        """Configure drag-and-drop bindings for a widget.
+
+        Parameters
+        ----------
+        widget : tk.Widget
+            The widget to configure for drag-and-drop events.
+        """
         widget.drop_target_register('DND_Files')
         widget.dnd_bind('<<Drop>>', self.drop_handler)
 
@@ -91,6 +128,7 @@ class DropFrame(tk.Frame):
         widget.dnd_bind('<<DragLeave>>', lambda e: widget.config(bg=self.dnd_bg_color))
 
     def show_file_list_frame(self):
+        """Display the file list frame and adjust layout for uploaded files."""
         self.upload_btn.place_forget()
         row_height = 30
         visible_rows = min(len(self.model.uploaded_files)+1, self.max_visible_rows)
@@ -109,12 +147,14 @@ class DropFrame(tk.Frame):
         self.clear_files_btn.pack(side="bottom", pady=10)
 
     def hide_file_list_frame(self):     
+        """Hide the file list frame and reset layout to show upload button."""
         self.upload_btn.place(relx=0.5, rely=0.5, anchor="center")
         self.clear_files_btn.pack_forget()
         self.scroll_canvas.place_forget()
         self.scrollbar.place_forget()
 
     def update_file_display(self): 
+        """Update the display of uploaded files in the scrollable frame."""
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
 
@@ -146,6 +186,13 @@ class DropFrame(tk.Frame):
         self.make_scrollable_for_file_list(self)        
 
     def make_scrollable_for_file_list(self, widget: tk.Widget): 
+        """Recursively bind mouse wheel scrolling for the file list widgets.
+
+        Parameters
+        ----------
+        widget : tk.Widget
+            The widget (and its children) to make scrollable.
+        """
         if not widget:
             return
         if not self.scrollbar.winfo_ismapped():

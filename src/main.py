@@ -1,3 +1,10 @@
+"""
+AFS Submissions Tool main entry point.
+
+Initializes the TkinterDnD root window, sets up the main controller, ensures LibreOffice is started, and launches the main event loop.
+Cleans up uploads on exit.
+"""
+
 from tkinterdnd2 import TkinterDnD as tk
 from controllers.main_controller import MainController
 from models.utils.lo_manager import ensure_lo_started
