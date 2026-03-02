@@ -1,7 +1,32 @@
+"""
+NavigationBar: Top navigation bar for AFS Submissions Tool.
+
+Provides buttons for switching between Submissions, Contracts, and Email views.
+"""
+
 import tkinter as tk
 
 class NavigationBar(tk.Frame):
+    """Navigation bar frame with view-switching buttons.
+
+    Parameters
+    ----------
+    root : tk.Widget
+        Parent widget for the navigation bar.
+    bg_color : str
+        Background color for the navigation bar and buttons.
+    """
+
     def __init__(self, root, bg_color):
+        """Initialize the NavigationBar and its buttons.
+
+        Parameters
+        ----------
+        root : tk.Widget
+            Parent widget for the navigation bar.
+        bg_color : str
+            Background color for the navigation bar and buttons.
+        """
         super().__init__(root)
         
         self.bg_color = bg_color
@@ -45,5 +70,6 @@ class NavigationBar(tk.Frame):
         self.navbar_place_buttons()
 
     def navbar_place_buttons(self):
+        """Pack all navigation buttons into the navigation bar."""
         for btn in self.btns:
             btn.pack(side="left", expand=True, fill="both")

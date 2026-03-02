@@ -1,3 +1,9 @@
+"""
+main_controller: Main application controller for AFS Submissions Tool.
+
+Initializes the main model, navigation bar, views, and sub-controllers for submissions, contracts, and email features.
+"""
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -19,7 +25,21 @@ NAVBAR_BG_COLOR = FOOTER_BG_COLOR
 SUB_COLOR = BG_COLOR
 
 class MainController:
+    """Main application controller.
+
+    Parameters
+    ----------
+    root : tk.Tk
+        The main Tkinter root window.
+    """
     def __init__(self, root):        
+        """Initialize the MainController and set up all views and sub-controllers.
+
+        Parameters
+        ----------
+        root : tk.Tk
+            The main Tkinter root window.
+        """
         self.root = root
 
         self.model = MainModel()
@@ -54,11 +74,27 @@ class MainController:
         self.footer.pack(fill='x', side='bottom')
 
     def display_view(self, view: tk.Frame):
+        """Display the given view, hiding the current one.
+
+        Parameters
+        ----------
+        view : tk.Frame
+            The view to display.
+        """
         self.current_view.pack_forget()
         self.current_view = view
         self.current_view.pack(pady=10)
 
     def bind_navbar_btn(self, btn: tk.Button, view: tk.Frame):
+        """Bind a navigation bar button to display a specific view.
+
+        Parameters
+        ----------
+        btn : tk.Button
+            The navigation button to bind.
+        view : tk.Frame
+            The view to display when the button is clicked.
+        """
         def display():
             for button in self.navbar.btns:
                 button.config(state=tk.NORMAL)                
@@ -67,6 +103,13 @@ class MainController:
         btn.config(command=display)
 
     def load_drive_path(self):
+        """Prompt the user to select a drive folder if not already set.
+
+        Returns
+        -------
+        str
+            The selected drive path.
+        """
         if self.model.drive:
             return self.model.drive
 
@@ -87,6 +130,7 @@ class MainController:
         return drive_path
     
     def prompt_for_drive(self):
+        """Show an info dialog prompting the user to select a drive folder."""
         messagebox.showinfo(
             "Select Drive Folder",
             "No drive selected.\n\nPlease choose your Google Drive shared folder before proceeding."

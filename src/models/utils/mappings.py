@@ -1,3 +1,9 @@
+"""
+mappings: Field mapping definitions for AFS applications.
+
+Provides dictionaries for mapping application fields to standardized names for business, entity, and contract data extraction.
+"""
+
 APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
     # Business Info
     "Business Legal Name": [
@@ -44,6 +50,7 @@ APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
     ],
     "Business Phone Number": [
         "business phone",
+        "owner business phone",
         "business phone number",
         "phone"
     ],
@@ -53,7 +60,9 @@ APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
     ],
     "Business Email": [
         "business email",
-        "email 1"
+        "owner business email",
+        "email 1",
+        "email"
     ],
     "Business Address": [
         "Address", 
@@ -65,19 +74,22 @@ APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
         "business address street", 
         "address street", 
         "address street,", 
-        "business address: address line 1"
+        "business address: address line 1",
+        "business Bus Address"
     ],
     "Business Suite/Floor": [
         "business suite/floor",
         "business suite",
-        "business floor"
+        "business floor",
+        "businessBus Address2"
     ],
     "Business City": [
         "city", 
         "city,", 
         "business city", 
         "business city,", 
-        "business address: city"
+        "business address: city",
+        "business Bus City"
     ],
     "Business State": [
         "State", 
@@ -87,18 +99,22 @@ APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
         "state,", 
         "business state", 
         "business state,", 
-        "business address: state"
+        "business address: state",
+        "business Bus State"
     ],
     "Business Zip": [
         "Zip", 
         "Zip Code",  
         "business zip", 
-        "business address: zip/postal code"
+        "business address: zip/postal code",
+        "business Bus Zip"
     ],
     "Business Industry": [
         "industry",
         "business industry",
-        "type of business"
+        "business industry type",
+        "type of business",
+        "Industry Type"
     ],
     "Business Description": [
         "description",
@@ -115,6 +131,7 @@ APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
         "Name of Officer Signing Application", 
         "Name of Principal OwnerGuarantor", 
         "primary owner name: first"
+        "First Name"
     ],
     "Owner SSN": [
         "owner SSN", 
@@ -135,6 +152,7 @@ APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
         "ownership",
         "ownership %",
         "ownership percent"
+        "Owner %"
     ],
     "Owner Date of Birth": [
         "owner date of birth", 
@@ -147,11 +165,15 @@ APPLICATION_FIELD_MAPPING: dict[str, list[str]] = {
     "Owner Email": [
         "owner email",
         "owner personal email",
+        "owner Owner Email 2",
+        "Owner Email 2",
         "email",
         "email 2"
     ],
     "Owner Phone Number": [
         "owner mobile phone",
+        "Owner Phone2",
+        "owner Owner Phone2",
         "owner mobile",
         "owner phone",
         "owner phone number",
@@ -344,6 +366,11 @@ CONTRACT_FIELD_MAPPING: dict[str, list[str]] = {
         "Merchant Name",
         "LegalCorporate Name", 
         "business name",
+    ],
+    "DBA": [
+        "business dba",
+        "dba",
+        "doing business as"
     ],
     "Tele No": [
         "mobile phone",

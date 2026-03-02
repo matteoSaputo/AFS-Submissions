@@ -1,3 +1,9 @@
+"""
+fill_template: Utility for filling PDF templates with AFS data.
+
+Uses pdfrw to fill form fields in PDF templates, optionally flattens and signs the output.
+"""
+
 import os
 import re
 from pdfrw import PdfReader, PdfWriter, PdfDict, PdfObject, PdfString
@@ -7,7 +13,26 @@ from models.utils.resource_path import resource_path
 from models.utils.insert_script_signature import insert_script_signature
 from models.utils.flatten_pdf import flatten_pdf_preserving_fields
 
-def fill_pdf(afs_data: dict, output_path, template_path, sig_coords=(0, 0, 0, 0), flatten=False, sign=True):
+def fill_pdf(afs_data: dict, output_path, template_path, signature="", sig_coords=(0, 0, 0, 0), flatten=False, sign=True):
+    """Fill a PDF template with AFS data and optionally flatten/sign.
+
+    Parameters
+    ----------
+    afs_data : dict
+        Data to fill into the PDF form fields.
+    output_path : str
+        Path to save the filled PDF file.
+    template_path : str
+        Path to the PDF template file.
+    signature : str, optional
+        Signature to insert (default: empty string).
+    sig_coords : tuple, optional
+        Coordinates for signature placement (default: (0, 0, 0, 0)).
+    flatten : bool, optional
+        Whether to flatten the PDF after filling (default: False).
+    sign : bool, optional
+        Whether to sign the PDF after filling (default: True).
+    """
     if os.path.exists(output_path):
         os.unlink(output_path)
 
@@ -40,7 +65,7 @@ def fill_pdf(afs_data: dict, output_path, template_path, sig_coords=(0, 0, 0, 0)
         insert_script_signature(
             output_path, 
             resource_path("temp.pdf"), 
-            afs_data["Owner Name"],
+            signature,
             sig_coords
         )
         os.replace(resource_path("temp.pdf"), output_path)

@@ -1,8 +1,26 @@
+"""
+find_matching_folder: Utility for matching business names to folders.
+
+Uses fuzzy matching to find the best folder match for a business name, legal name, or DBA.
+"""
+
 import os
 import re
 from rapidfuzz import process, fuzz
 
 def normalize_name(name):
+    """Normalize a business name for matching.
+
+    Parameters
+    ----------
+    name : str
+        Business name to normalize.
+
+    Returns
+    -------
+    str
+        Normalized business name.
+    """
     if not name:
         return ""
     name = name.lower()
@@ -12,6 +30,24 @@ def normalize_name(name):
     return name.strip()
 
 def find_matching_folder(business_name, base_folder, legal_name, dba_name):
+    """Find the best matching folder for a business name.
+
+    Parameters
+    ----------
+    business_name : str
+        Business name to match.
+    base_folder : str
+        Path to the base folder containing candidate folders.
+    legal_name : str
+        Legal name of the business.
+    dba_name : str
+        DBA name of the business.
+
+    Returns
+    -------
+    str or None
+        Name of the best matching folder, or None if no match found.
+    """
     candidates = []
 
     # Prepare candidates: full name, legal name, dba name

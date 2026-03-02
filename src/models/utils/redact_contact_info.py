@@ -1,9 +1,30 @@
+"""
+redact_contact_info: Utility for redacting sensitive contact info from PDFs.
+
+Uses PyMuPDF to search for phone numbers and emails, and applies redactions to the document.
+"""
+
 import fitz  # PyMuPDF
 import re
 import os
 from models.utils.resource_path import resource_path
 
 def redact_contact_info(input_path, output_path):
+    """Redact phone numbers and emails from a PDF file.
+
+    Parameters
+    ----------
+    input_path : str
+        Path to the input PDF file.
+    output_path : str
+        Path to save the redacted PDF file.
+
+    Returns
+    -------
+    str
+        Path to the saved redacted PDF file.
+    """
+
     if os.path.exists(output_path):
         os.unlink(output_path)
 

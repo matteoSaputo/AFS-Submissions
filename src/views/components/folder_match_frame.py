@@ -1,7 +1,40 @@
+"""
+FolderMatchFrame: UI for matching and confirming folders.
+
+Provides buttons to confirm or create a new folder for uploads.
+"""
+
 import tkinter as tk
 
 class FolderMatchFrame(tk.Frame):
+    """Frame for folder matching and confirmation.
+
+    Parameters
+    ----------
+    root : tk.Widget
+        Parent widget for the frame.
+    bg : str
+        Background color for the frame.
+    new_folder_handler : Callable
+        Function to call when creating a new folder.
+    confirm_folder_handler : Callable
+        Function to call when confirming folder selection.
+    """
+
     def __init__(self, root, bg, new_folder_handler, confirm_folder_handler):
+        """Initialize the FolderMatchFrame and its UI components.
+
+        Parameters
+        ----------
+        root : tk.Widget
+            Parent widget for the frame.
+        bg : str
+            Background color for the frame.
+        new_folder_handler : Callable
+            Function to call when creating a new folder.
+        confirm_folder_handler : Callable
+            Function to call when confirming folder selection.
+        """
         super().__init__(root)
         self.new_folder_handler = new_folder_handler
         self.confirm_folder_handler = confirm_folder_handler

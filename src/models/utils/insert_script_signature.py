@@ -1,9 +1,28 @@
+"""
+insert_script_signature: Utility for inserting a script signature into a PDF.
+
+Uses PyMuPDF to insert a signature using a custom font at specified coordinates.
+"""
+
 import fitz
 import os
 
 from models.utils.resource_path import resource_path
 
 def insert_script_signature(pdf_path, output_path, owner_name, field_coords):
+    """Insert a script signature into a PDF file.
+
+    Parameters
+    ----------
+    pdf_path : str
+        Path to the input PDF file.
+    output_path : str
+        Path to save the signed PDF file.
+    owner_name : str
+        Name to insert as signature.
+    field_coords : tuple
+        Coordinates for signature placement.
+    """
     doc = fitz.open(pdf_path)
     page = doc.load_page(0)
 

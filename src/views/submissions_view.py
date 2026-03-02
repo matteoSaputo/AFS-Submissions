@@ -1,3 +1,9 @@
+"""
+SubmissionsView: Tkinter frame for uploading AFS applications.
+
+Displays UI elements for drag-and-drop uploads, drive selection, and folder matching. Uses components for spinner, drive changer, and drop frame.
+"""
+
 import tkinter as tk
 
 from models.main_model import MainModel
@@ -9,7 +15,29 @@ from views.components.spinner import Spinner
 BTN_COLOR = "#007BFF"
 
 class SubmissionsView(tk.Frame):
+    """Frame for uploading and managing AFS submissions.
+
+    Parameters
+    ----------
+    controller : MainController
+        The main controller for the application.
+    model : MainModel
+        The application model.
+    root : tk.Widget
+        Parent widget for this frame.
+    """
     def __init__(self, controller, model: MainModel, root):
+        """Initialize the SubmissionsView frame and its UI components.
+
+        Parameters
+        ----------
+        controller : MainController
+            The main controller for the application.
+        model : MainModel
+            The application model.
+        root : tk.Widget
+            Parent widget for this frame.
+        """
         super().__init__(root, bg=controller.bg_color)
         self.root = root
         self.controller = controller

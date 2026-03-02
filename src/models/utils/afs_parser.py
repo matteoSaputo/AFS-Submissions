@@ -1,3 +1,9 @@
+"""
+afs_parser: Utility for parsing AFS application PDFs and extracting data.
+
+Provides functions for normalizing keys, mapping fields, and extracting business, owner, and contract information from PDFs.
+"""
+
 import pprint
 import pdfplumber
 import re
@@ -32,9 +38,37 @@ CO_OWNER_FIELDS = [
 ]
 
 def normalize_key(key: str):
+    """Normalize a field key for mapping and extraction.
+
+    Parameters
+    ----------
+    key : str
+        Field name to normalize.
+
+    Returns
+    -------
+    str
+        Normalized field name.
+    """
     return key.strip().replace(",", "").replace("\xa0", "").lower()
 
 def map_fields(raw_data: dict, full_package: bool, field_mapping: dict[str, list[str]]):
+    """Map raw data fields to standardized field names using provided mapping.
+
+    Parameters
+    ----------
+    raw_data : dict
+        Raw data extracted from PDF.
+    full_package : bool
+        Whether the full package is present.
+    field_mapping : dict
+        Mapping of standardized field names to possible raw keys.
+
+    Returns
+    -------
+    dict
+        Mapped data dictionary.
+    """
     if full_package:
         return raw_data, None
 
@@ -60,12 +94,31 @@ def map_fields(raw_data: dict, full_package: bool, field_mapping: dict[str, list
         result[out_field] = matched_value
     
     result['Date'] = datetime.date.today().strftime("%m/%d/%Y")
+    if raw_data.get('Owner last name'):
+        result['Owner Name'] = " ".join([
+            raw_data.get('Owner first name', '').strip(),
+            raw_data.get('Owner last name', '').strip()
+        ]).strip()
+    print('\n\nRaw Data:')
     print(raw_data)
-    print('\n')
+    print('\n\nMapped Data:')
     print(result)
     return result, missing
 
 def truncate_name_at_word(name, limit=40):
+    """Truncate a name at the last word boundary before a character limit.
+
+    Parameters
+    ----------
+    name : str
+        The name string to truncate.
+    limit : int, optional
+        Maximum length before truncation (default: 40).
+    Returns
+    -------
+    str
+        Truncated name string.
+    """
     if len(name) <= limit:
         return name
     trimmed = name[:limit]
@@ -74,13 +127,38 @@ def truncate_name_at_word(name, limit=40):
     return trimmed.rstrip()
 
 def clean_value(value):
+    """Remove section headings and strip whitespace from a value string.
+
+    Parameters
+    ----------
+    value : str
+        The value string to clean.
+    Returns
+    -------
+    str
+        Cleaned value string.
+    """
     for heading in SECTION_HEADINGS:
         if heading.lower() in value.lower():
             return ""
     return value.strip()
 
 def split_inline_fields(field, value, inline_fields):
-    """Splits out known subfields that appear inline within a value."""
+    """Split out known subfields that appear inline within a value.
+
+    Parameters
+    ----------
+    field : str
+        The field name containing inline subfields.
+    value : str
+        The value string to split.
+    inline_fields : list
+        List of subfield names to extract.
+    Returns
+    -------
+    dict
+        Dictionary of extracted subfield values.
+    """
     subresults = {}
     for subfield in inline_fields:
         pattern = rf"\b{subfield}\s*:"
@@ -92,6 +170,17 @@ def split_inline_fields(field, value, inline_fields):
     return {field: value.strip()}
 
 def is_likely_agreement(file_path):
+    """Check if a file is likely a contract agreement PDF by searching for agreement keywords.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the file to check.
+    Returns
+    -------
+    bool
+        True if the file is likely an agreement, else False.
+    """
     try:        
         with pdfplumber.open(file_path) as pdf:
             page = pdf.pages[0]
@@ -106,6 +195,17 @@ def is_likely_agreement(file_path):
         return False
 
 def is_likely_application(file_path: str):
+    """Check if a file is likely an AFS application (PDF or CSV) by searching for section headings or keywords.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the file to check.
+    Returns
+    -------
+    bool
+        True if the file is likely an application, else False.
+    """
     @contextlib.contextmanager
     def suppress_stdout_stderr():
         with open(os.devnull, 'w') as fnull:
@@ -141,6 +241,17 @@ def is_likely_application(file_path: str):
         return False
 
 def get_document_type(file_path):
+    """Determine the document type (Application or Contract) based on file content.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the file to check.
+    Returns
+    -------
+    str or None
+        'Application', 'Contract', or None if not recognized.
+    """
     if is_likely_application(file_path):
         return "Application"
     elif is_likely_agreement(file_path):
@@ -148,6 +259,19 @@ def get_document_type(file_path):
     return None
 
 def extract_afs_data(file_path, document_purpose):
+    """Extract AFS data from a file (PDF or CSV) for the given document purpose.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the file to extract data from.
+    document_purpose : str
+        Purpose of the document (e.g., 'Application' or 'Contract').
+    Returns
+    -------
+    tuple
+        Extracted data, missing values, file extension, full package flag.
+    """
     document_type = get_document_type(file_path)
     if not document_type:
         return None    
@@ -174,6 +298,17 @@ def extract_afs_data(file_path, document_purpose):
     return afs_data, missing_values, ext, full_Package
 
 def extract_from_full_package_csv(df: pd.DataFrame):
+    """Extract AFS data from a full package CSV DataFrame.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing full package data.
+    Returns
+    -------
+    dict
+        Extracted AFS data.
+    """
     df.columns = df.columns.str.lower()
     if df.empty:
         print("Empty dataframe 2")
@@ -185,6 +320,17 @@ def extract_from_full_package_csv(df: pd.DataFrame):
     return afs_data
     
 def extract_from_csv(csv_path):
+    """Extract AFS data from a single-row CSV file.
+
+    Parameters
+    ----------
+    csv_path : str
+        Path to the CSV file.
+    Returns
+    -------
+    dict
+        Extracted AFS data.
+    """
     df = pd.read_csv(csv_path)
     if df.empty:
         print("Empty dataframe 3")
@@ -193,6 +339,17 @@ def extract_from_csv(csv_path):
     return extract_from_df_row(row)
 
 def extract_from_df_row(row):
+    """Extract AFS data from a DataFrame row.
+
+    Parameters
+    ----------
+    row : pd.Series
+        DataFrame row containing field-value pairs.
+    Returns
+    -------
+    dict
+        Extracted AFS data.
+    """
     afs_data = {}
     matches = list(row.items())
     afs_data = extract_from_list(matches)
@@ -200,6 +357,19 @@ def extract_from_df_row(row):
     return afs_data
 
 def extract_from_pdf(pdf_path, document_type):
+    """Extract AFS data from a PDF file for the given document type.
+
+    Parameters
+    ----------
+    pdf_path : str
+        Path to the PDF file.
+    document_type : str
+        Type of document ('Application' or 'Contract').
+    Returns
+    -------
+    dict or None
+        Extracted AFS data or None if not recognized.
+    """
     if document_type == "Application":
         return extract_from_application(pdf_path)
     elif document_type == "Contract":
@@ -207,6 +377,17 @@ def extract_from_pdf(pdf_path, document_type):
     return None
 
 def extract_from_contract(pdf_path):
+    """Extract contract data from a contract PDF file.
+
+    Parameters
+    ----------
+    pdf_path : str
+        Path to the contract PDF file.
+    Returns
+    -------
+    dict
+        Extracted contract data.
+    """
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
         for page in pdf.pages:
@@ -228,6 +409,17 @@ def extract_from_contract(pdf_path):
     return extract_from_text(full_text)
 
 def extract_from_application(pdf_path):
+    """Extract application data from an application PDF file.
+
+    Parameters
+    ----------
+    pdf_path : str
+        Path to the application PDF file.
+    Returns
+    -------
+    dict
+        Extracted application data.
+    """
     with pdfplumber.open(pdf_path) as pdf:
         full_text = ""
         for page in pdf.pages:
@@ -259,12 +451,26 @@ def extract_from_application(pdf_path):
     ])
     full_text = full_text.replace('Personal Fax', '*Personal Fax')
     full_text = full_text.replace('Suite/Floor', '*Suite/Floor')
+    full_text = full_text.replace('DBA', '*DBA')
     full_text = full_text.replace('*', '\n*').replace('$', '')
     if start != -1:
         full_text = full_text[start:]
     return extract_from_text(full_text, categorize=True)
 
 def extract_from_text(full_text, categorize=False):
+    """Extract field-value pairs from text using regex patterns.
+
+    Parameters
+    ----------
+    full_text : str
+        The full text to extract from.
+    categorize : bool, optional
+        Whether to categorize fields by section (default: False).
+    Returns
+    -------
+    dict
+        Extracted field-value pairs.
+    """
     # Main pattern for extracting fields
     pattern = r"\*\s*(?P<field>[^:*]+?)\s*:\s*(?P<value>.*?)(?=\s*\*[^:*]+?:|\n|$)"
     matches = re.findall(pattern, full_text)
@@ -280,6 +486,19 @@ def extract_from_text(full_text, categorize=False):
     return afs_data
 
 def extract_from_list(list, categorize=True):
+    """Extract AFS data from a list of (field, value) pairs.
+
+    Parameters
+    ----------
+    list : list
+        List of (field, value) tuples.
+    categorize : bool, optional
+        Whether to categorize fields by section (default: True).
+    Returns
+    -------
+    dict
+        Extracted AFS data.
+    """
     # Track what section we're in
     current_section = "Business"
     afs_data = {}
@@ -320,6 +539,17 @@ def extract_from_list(list, categorize=True):
     return afs_data
 
 def track_missing_values(afs_data: dict):
+    """Track and print which values were missing in the extracted AFS data.
+
+    Parameters
+    ----------
+    afs_data : dict
+        Extracted AFS data.
+    Returns
+    -------
+    dict
+        Dictionary of missing values.
+    """
     # Track which values were missing
     missing_values = {}
 

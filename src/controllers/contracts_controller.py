@@ -1,15 +1,42 @@
-import os
-import tkinter as tk
+"""
+contracts_controller: Controller for managing contract submissions.
+
+Handles contract data preparation, folder matching, and UI updates for contract-related features.
+"""
+
+
 from tkinter import messagebox
 
-from controllers.contracts_service import ContracstService
+from models.services.contracts_service import ContracstService
 from controllers.submissions_controller import SubmissionsController
 from models.contracts_model import ContractsModel
 from views.contracts_view import ContractsPageOne
 from views.contracts_view_2 import ContractsPageTwo
 
 class ContractsController(SubmissionsController):
+    """Controller for contract submissions.
+
+    Parameters
+    ----------
+    root : tk.Tk
+        The main Tkinter root window.
+    bg_color : str
+        Background color for the view.
+    dnd_bg_color : str
+        Drag-and-drop background color for the view.
+    """
     def __init__(self, root, bg_color, dnd_bg_color):
+        """Initialize the ContractsController and set up model, service, and views.
+
+        Parameters
+        ----------
+        root : tk.Tk
+            The main Tkinter root window.
+        bg_color : str
+            Background color for the view.
+        dnd_bg_color : str
+            Drag-and-drop background color for the view.
+        """
         self.root = root
         self.bg_color = bg_color
         self.dnd_bg_color = dnd_bg_color
@@ -21,6 +48,7 @@ class ContractsController(SubmissionsController):
         self.view_2 = None
 
     def start_submission(self):
+        """Start the contract submission process and update the UI."""
         try:
             self.service.prepare_submission()
             
@@ -43,6 +71,13 @@ class ContractsController(SubmissionsController):
             self.view.spinner.hide_spinner()
 
     def finalize_submission(self, use_existing):
+        """Finalize the contract submission and show the contract details page.
+
+        Parameters
+        ----------
+        use_existing : bool
+            Whether to use the matched folder or create a new one.
+        """
         self.model.afs_data["Fee"] = self.view.fee_combo.get()
         self.model.afs_data["Frequency"] = self.view.freq_combo.get().lower()
         self.model.afs_data["Interest Rate"] = self.view.rate_combo.get()
@@ -58,6 +93,7 @@ class ContractsController(SubmissionsController):
         ).pack(pady=20)
     
     def reset_folder_UI(self):
+        """Reset the folder matching UI to its initial state for contracts."""
         self.service.reset_model_state()
         self.view.folder_match_frame.match_label.config(text="")
         for w in self.view.winfo_children():
@@ -67,4 +103,4 @@ class ContractsController(SubmissionsController):
         self.view.options.pack(padx=16, pady=(8, 12))
         self.view.drop_frame.pack(side="top", pady=10)
         self.view.drop_frame.update_file_display()
-    
+

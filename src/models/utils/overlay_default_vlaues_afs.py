@@ -1,3 +1,9 @@
+"""
+overlay_default_values_afs: Utility for overlaying default values on AFS PDFs.
+
+Uses PyMuPDF to insert missing data into specified coordinates on the first page of the PDF.
+"""
+
 import fitz
 from models.utils.resource_path import resource_path
 
@@ -7,9 +13,32 @@ FIELD_CORRDS = {
 
 
 def normalize_key(key: str):
+    """Normalize field key for matching coordinates.
+
+    Parameters
+    ----------
+    key : str
+        Field name to normalize.
+
+    Returns
+    -------
+    str
+        Normalized field name.
+    """
     return key.strip().replace(",", "").replace("\xa0", "").replace(" ", "").lower()
 
 def overlay_default_values_afs(input_path, output_path, missing_data: dict):
+    """Overlay missing values onto the first page of an AFS PDF.
+
+    Parameters
+    ----------
+    input_path : str
+        Path to the input PDF file.
+    output_path : str
+        Path to save the output PDF file.
+    missing_data : dict
+        Dictionary of missing field names and values.
+    """
     doc = fitz.open(input_path)
     page = doc[0]  # Assuming all data is on page 1
 

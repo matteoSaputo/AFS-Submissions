@@ -1,3 +1,13 @@
+"""src.views.email_view
+
+EmailView: a Tkinter view placeholder for email-related features.
+Displays an informational message and a grid of cat images from assets/cats.
+
+Notes:
+- Images are thumbnailed and references are stored to prevent garbage collection.
+- The model must provide a resource_path() method for resource location.
+"""
+
 import tkinter as tk
 import os
 
@@ -6,7 +16,34 @@ from PIL import Image, ImageTk
 from models.main_model import MainModel
 
 class EmailView(tk.Frame):
+    """Frame showing email-related placeholder text and a grid of cat images.
+
+    Parameters
+    ----------
+    root : tk.Widget
+        Parent widget for this frame.
+    model : MainModel
+        Application model; must implement resource_path(relative_path).
+    bg_color : str
+        Background color for the frame and child widgets.
+
+    Attributes
+    ----------
+    cat_pics : list
+        Cached ImageTk.PhotoImage references for displayed images.
+    """
     def __init__(self, root, model: MainModel, bg_color):
+        """Initialize EmailView, load cat images, and arrange them in a grid.
+
+        Parameters
+        ----------
+        root : tk.Widget
+            Parent widget for this frame.
+        model : MainModel
+            Application model; must implement resource_path(relative_path).
+        bg_color : str
+            Background color for the frame and child widgets.
+        """
         super().__init__(root)
         self.root = root
         self.bg_color = bg_color
