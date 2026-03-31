@@ -1,0 +1,1 @@
+print("Hello, World! This is a test file to verify the setup of the AFS Submissions Tool.")
